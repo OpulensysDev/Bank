@@ -265,6 +265,10 @@
     </header>
 
     <main class="container">
+        <div class="balance-card">
+            <h2 class="balance-title">Saldo disponível</h2>
+            <div class="balance-amount" id="user-balance">R$ 0,00</div>
+        </div>
         <div class="cofre-container" id="cofre-container">
             <!-- Cofres serão adicionados dinamicamente aqui -->
             <div class="add-cofre" id="add-cofre">
@@ -320,6 +324,7 @@
 
         // Referências aos elementos do DOM
         const userNameElement = document.getElementById('user-name');
+        const userBalanceElement = document.getElementById('user-balance');
         const cofreContainer = document.getElementById('cofre-container');
         const addCofreButton = document.getElementById('add-cofre');
         const modal = document.getElementById('cofreModal');
@@ -350,26 +355,32 @@
             if (user) {
                 currentUser = user;
                 userNameElement.textContent = user.displayName || user.email;
-                loadCofres();
+                loadUserData();
             } else {
                 window.location.href = 'index.html';
             }
         });
 
-        // Carregar cofres do usuário
-        function loadCofres() {
-            const cofresRef = firebase.database().ref('users/' + currentUser.uid + '/cofres');
-            cofresRef.on('value', (snapshot) => {
-                const cofres = snapshot.val();
-                cofreContainer.innerHTML = '';
-                if (cofres) {
-                    Object.keys(cofres).forEach((cofreId) => {
-                        const cofre = cofres[cofreId];
-                        addCofreToUI(cofreId, cofre);
-                    });
+        // Carregar dados do usuário
+        function loadUserData() {
+            const userRef = firebase.database().ref('users/' + currentUser.uid);
+            userRef.on('value', (snapshot) => {
+                const userData = snapshot.val();
+                if (userData) {
+                    userBalanceElement.textContent = formatCurrency(userData.balance || 0);
+                    loadCofres(userData.cofres || {});
                 }
-                cofreContainer.appendChild(addCofreButton);
             });
+        }
+
+        // Carregar cofres do usuário
+        function loadCofres(cofres) {
+            cofreContainer.innerHTML = '';
+            Object.keys(cofres).forEach((cofreId) => {
+                const cofre = cofres[cofreId];
+                addCofreToUI(cofreId, cofre);
+            });
+            cofreContainer.appendChild(addCofreButton);
         }
 
         // Adicionar cofre à interface
@@ -437,32 +448,92 @@
 
         // Criar novo cofre
         function createCofre(name, description, amount) {
-            const cofresRef = firebase.database().ref('users/' + currentUser.uid + '/cofres');
-            const newCofreRef = cofresRef.push();
-            newCofreRef.set({
-                name: name,
-                description: description,
-                balance: amount,
-                createdAt: firebase.database.ServerValue.TIMESTAMP
+            const userRef = firebase.database().ref('users/' + currentUser.uid);
+            userRef.transaction((userData) => {
+                if (userData) {
+                    if (userData.balance >= amount) {
+                        userData.balance -= amount;
+                        if (!userData.cofres) {
+                            userData.cofres = {};
+                        }
+                        const newCofreId = firebase.database().ref().push().key;
+                        userData.cofres[newCofreId] = {
+                            name: name,
+                            description: description,
+                            balance: amount,
+                            createdAt: firebase.database.ServerValue.TIMESTAMP
+                        };
+                        // Atualizar histórico de saldo
+                        if (!userData.balanceHistory) {
+                            userData.balanceHistory = [];
+                        }
+                        userData.balanceHistory.push({
+                            date: new Date().toISOString(),
+                            balance: userData.balance,
+                            action: 'Criação de cofre'
+                        });
+                    } else {
+                        throw new Error('Saldo insuficiente');
+                    }
+                }
+                return userData;
+            }, (error, committed, snapshot) => {
+                if (error) {
+                    showNotification('Erro ao criar cofre: ' + error.message);
+                } else if (!committed) {
+                    showNotification('Não foi possível criar o cofre. Tente novamente.');
+                } else {
+                    showNotification('Cofre criado com sucesso!');
+                }
             });
-            showNotification('Cofre criado com sucesso!');
         }
 
         // Atualizar cofre existente
         function updateCofre(cofreId, name, description, amount) {
-            const cofreRef = firebase.database().ref('users/' + currentUser.uid + '/cofres/' + cofreId);
-            cofreRef.update({
-                name: name,
-                description: description,
-                balance: amount
+            const userRef = firebase.database().ref('users/' + currentUser.uid);
+            userRef.transaction((userData) => {
+                if (userData && userData.cofres && userData.cofres[cofreId]) {
+                    const oldAmount = userData.cofres[cofreId].balance;
+                    const difference = amount - oldAmount;
+                    
+                    if (difference > 0 && userData.balance < difference) {
+                        throw new Error('Saldo insuficiente');
+                    }
+                    
+                    userData.balance -= difference;
+                    userData.cofres[cofreId] = {
+                        ...userData.cofres[cofreId],
+                        name: name,
+                        description: description,
+                        balance: amount
+                    };
+                    
+                    // Atualizar histórico de saldo
+                    if (!userData.balanceHistory) {
+                        userData.balanceHistory = [];
+                    }
+                    userData.balanceHistory.push({
+                        date: new Date().toISOString(),
+                        balance: userData.balance,
+                        action: 'Atualização de cofre'
+                    });
+                }
+                return userData;
+            }, (error, committed, snapshot) => {
+                if (error) {
+                    showNotification('Erro ao atualizar cofre: ' + error.message);
+                } else if (!committed) {
+                    showNotification('Não foi possível atualizar o cofre. Tente novamente.');
+                } else {
+                    showNotification('Cofre atualizado com sucesso!');
+                }
             });
-            showNotification('Cofre atualizado com sucesso!');
         }
 
         // Editar cofre
         function editCofre(cofreId) {
-            const cofreRef = firebase.database().ref('users/' + currentUser.uid + '/cofres/' + cofreId);
-            cofreRef.once('value', (snapshot) => {
+            const userRef = firebase.database().ref('users/' + currentUser.uid + '/cofres/' + cofreId);
+            userRef.once('value', (snapshot) => {
                 const cofre = snapshot.val();
                 document.getElementById('cofre-name').value = cofre.name;
                 document.getElementById('cofre-description').value = cofre.description || '';
@@ -475,9 +546,33 @@
         // Excluir cofre
         function deleteCofre(cofreId) {
             if (confirm('Tem certeza que deseja excluir este cofre?')) {
-                const cofreRef = firebase.database().ref('users/' + currentUser.uid + '/cofres/' + cofreId);
-                cofreRef.remove();
-                showNotification('Cofre excluído com sucesso!');
+                const userRef = firebase.database().ref('users/' + currentUser.uid);
+                userRef.transaction((userData) => {
+                    if (userData && userData.cofres && userData.cofres[cofreId]) {
+                        const cofreBalance = userData.cofres[cofreId].balance;
+                        userData.balance += cofreBalance;
+                        delete userData.cofres[cofreId];
+                        
+                        // Atualizar histórico de saldo
+                        if (!userData.balanceHistory) {
+                            userData.balanceHistory = [];
+                        }
+                        userData.balanceHistory.push({
+                            date: new Date().toISOString(),
+                            balance: userData.balance,
+                            action: 'Exclusão de cofre'
+                        });
+                    }
+                    return userData;
+                }, (error, committed, snapshot) => {
+                    if (error) {
+                        showNotification('Erro ao excluir cofre: ' + error.message);
+                    } else if (!committed) {
+                        showNotification('Não foi possível excluir o cofre. Tente novamente.');
+                    } else {
+                        showNotification('Cofre excluído com sucesso!');
+                    }
+                });
             }
         }
 
@@ -499,35 +594,68 @@
 
         // Depositar no cofre
         function depositToCofre(cofreId, amount) {
-            const cofreRef = firebase.database().ref('users/' + currentUser.uid + '/cofres/' + cofreId);
-            cofreRef.transaction((cofre) => {
-                if (cofre) {
-                    cofre.balance = (cofre.balance || 0) + amount;
+            const userRef = firebase.database().ref('users/' + currentUser.uid);
+            userRef.transaction((userData) => {
+                if (userData && userData.cofres && userData.cofres[cofreId]) {
+                    if (userData.balance >= amount) {
+                        userData.balance -= amount;
+                        userData.cofres[cofreId].balance += amount;
+                        
+                        // Atualizar histórico de saldo
+                        if (!userData.balanceHistory) {
+                            userData.balanceHistory = [];
+                        }
+                        userData.balanceHistory.push({
+                            date: new Date().toISOString(),
+                            balance: userData.balance,
+                            action: 'Depósito em cofre'
+                        });
+                    } else {
+                        throw new Error('Saldo insuficiente');
+                    }
                 }
-                return cofre;
+                return userData;
             }, (error, committed, snapshot) => {
-                if (committed) {
-                    showNotification(`Depósito de ${formatCurrency(amount)} realizado com sucesso!`);
+                if (error) {
+                    showNotification('Erro ao depositar: ' + error.message);
+                } else if (!committed) {
+                    showNotification('Não foi possível realizar o depósito. Tente novamente.');
                 } else {
-                    showNotification('Erro ao realizar o depósito. Tente novamente.');
+                    showNotification(`Depósito de ${formatCurrency(amount)} realizado com sucesso!`);
                 }
             });
         }
 
         // Sacar do cofre
         function withdrawFromCofre(cofreId, amount) {
-            const cofreRef = firebase.database().ref('users/' + currentUser.uid + '/cofres/' + cofreId);
-            cofreRef.transaction((cofre) => {
-                if (cofre && cofre.balance >= amount) {
-                    cofre.balance -= amount;
-                    return cofre;
+            const userRef = firebase.database().ref('users/' + currentUser.uid);
+            userRef.transaction((userData) => {
+                if (userData && userData.cofres && userData.cofres[cofreId]) {
+                    if (userData.cofres[cofreId].balance >= amount) {
+                        userData.balance += amount;
+                        userData.cofres[cofreId].balance -= amount;
+                        
+                        // Atualizar histórico de saldo
+                        if (!userData.balanceHistory) {
+                            userData.balanceHistory = [];
+                        }
+                        userData.balanceHistory.push({
+                            date: new Date().toISOString(),
+                            balance: userData.balance,
+                            action: 'Saque de cofre'
+                        });
+                    } else {
+                        throw new Error('Saldo insuficiente no cofre');
+                    }
                 }
-                return;
+                return userData;
             }, (error, committed, snapshot) => {
-                if (committed) {
-                    showNotification(`Saque de ${formatCurrency(amount)} realizado com sucesso!`);
+                if (error) {
+                    showNotification('Erro ao sacar: ' + error.message);
+                } else if (!committed) {
+                    showNotification('Não foi possível realizar o saque. Tente novamente.');
                 } else {
-                    showNotification('Saldo insuficiente ou erro ao realizar o saque.');
+                    showNotification(`Saque de ${formatCurrency(amount)} realizado com sucesso!`);
                 }
             });
         }
