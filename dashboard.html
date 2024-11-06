@@ -241,6 +241,8 @@
         const userBalanceElement = document.getElementById('user-balance');
         const notificationElement = document.getElementById('notification');
 
+        let balanceChart, expensesChart;
+
         // Função para formatar o valor em Reais
         function formatCurrency(value) {
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -265,86 +267,109 @@
                 const userRef = firebase.database().ref('users/' + user.uid);
 
                 // Buscar dados do usuário
-                userRef.once('value', (snapshot) => {
+                userRef.on('value', (snapshot) => {
                     const userData = snapshot.val();
                     if (userData) {
                         // Atualizar saldo
                         userBalanceElement.textContent = formatCurrency(userData.balance || 0);
+                        
+                        // Atualizar gráficos
+                        updateBalanceChart(userData.balanceHistory || []);
+                        updateExpensesChart(userData.expenses || {});
                     } else {
                         // Criar novo usuário no banco de dados
                         userRef.set({
                             name: user.displayName || user.email,
                             balance: 200, // Saldo inicial de R$ 200
+                            balanceHistory: [{date: new Date().toISOString(), balance: 200}],
+                            expenses: {},
                             createdAt: firebase.database.ServerValue.TIMESTAMP
                         });
                         userBalanceElement.textContent = formatCurrency(200);
                         showNotification('Bem-vindo! Você recebeu R$ 200 de bônus inicial.');
                     }
                 });
-
-                // Criar gráficos
-                createBalanceChart();
-                createExpensesChart();
             } else {
                 // Usuário não está autenticado, redirecionar para a página de login
                 window.location.href = 'index.html';
             }
         });
 
-        // Função para criar o gráfico de saldo
-        function createBalanceChart() {
+        // Função para criar/atualizar o gráfico de saldo
+        function updateBalanceChart(balanceHistory) {
             const ctx = document.getElementById('balanceChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
-                    datasets: [{
-                        label: 'Saldo',
-                        data: [200, 250, 300, 280, 320, 350],
-                        borderColor: 'rgb(75, 192, 192)',
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Evolução do Saldo'
+            
+            const data = balanceHistory.slice(-6); // Pegar os últimos 6 registros
+            const labels = data.map(item => new Date(item.date).toLocaleDateString('pt-BR'));
+            const values = data.map(item => item.balance);
+
+            if (balanceChart) {
+                balanceChart.data.labels = labels;
+                balanceChart.data.datasets[0].data = values;
+                balanceChart.update();
+            } else {
+                balanceChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Saldo',
+                            data: values,
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Evolução do Saldo'
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
         }
 
-        // Função para criar o gráfico de despesas
-        function createExpensesChart() {
+        // Função para criar/atualizar o gráfico de despesas
+        function updateExpensesChart(expenses) {
             const ctx = document.getElementById('expensesChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Alimentação', 'Transporte', 'Moradia', 'Lazer', 'Outros'],
-                    datasets: [{
-                        data: [30, 20, 25, 15, 10],
-                        backgroundColor: [
-                            'rgb(255, 99, 132)',
-                            'rgb(54, 162, 235)',
-                            'rgb(255, 205, 86)',
-                            'rgb(75, 192, 192)',
-                            'rgb(153, 102, 255)'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Distribuição de Despesas'
+            
+            const labels = Object.keys(expenses);
+            const values = Object.values(expenses);
+
+            if (expensesChart) {
+                expensesChart.data.labels = labels;
+                expensesChart.data.datasets[0].data = values;
+                expensesChart.update();
+            } else {
+                expensesChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: values,
+                            backgroundColor: [
+                                'rgb(255, 99, 132)',
+                                'rgb(54, 162, 235)',
+                                'rgb(255, 205, 86)',
+                                'rgb(75, 192, 192)',
+                                'rgb(153, 102, 255)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Distribuição de Despesas'
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
         }
     </script>
 </body>
