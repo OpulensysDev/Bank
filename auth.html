@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayInvest - Autenticação</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #ffffff;
+            --accent-color: #00a0e9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background-color: var(--secondary-color);
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 400px;
+            max-width: 90%;
+            padding: 40px;
+            position: relative;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-bottom: 2px solid #ddd;
+            background-color: transparent;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-bottom-color: var(--primary-color);
+        }
+
+        .input-group label {
+            position: absolute;
+            top: 15px;
+            left: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            color: #999;
+        }
+
+        .input-group input:focus ~ label,
+        .input-group input:valid ~ label {
+            top: -10px;
+            font-size: 12px;
+            color: var(--primary-color);
+        }
+
+        .input-group i {
+            position: absolute;
+            right: 0;
+            top: 15px;
+            color: #999;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus ~ i {
+            color: var(--primary-color);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            border: none;
+            padding: 12px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: var(--accent-color);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .toggle-form {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-form:hover {
+            color: var(--accent-color);
+        }
+
+        #error-message {
+            color: #ff3860;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .social-login {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 10px;
+            color: var(--secondary-color);
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .social-icon:hover {
+            transform: translateY(-3px);
+        }
+
+        .facebook { background-color: #3b5998; }
+        .google { background-color: #db4437; }
+        .twitter { background-color: #1da1f2; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container animate__animated animate__fadeIn">
+        <div id="login-form" class="form-container">
+            <h1><i class="fas fa-piggy-bank"></i> PayInvest</h1>
+            <div class="input-group">
+                <input type="email" id="login-email" required>
+                <label for="login-email">E-mail</label>
+                <i class="fas fa-envelope"></i>
+            </div>
+            <div class="input-group">
+                <input type="password" id="login-password" required>
+                <label for="login-password">Senha</label>
+                <i class="fas fa-lock"></i>
+            </div>
+            <button id="login-button">
+                <i class="fas fa-sign-in-alt"></i> Entrar
+            </button>
+            <div class="toggle-form" id="show-signup">Não tem uma conta? Cadastre-se</div>
+            <div class="social-login">
+                <div class="social-icon facebook"><i class="fab fa-facebook-f"></i></div>
+                <div class="social-icon google"><i class="fab fa-google"></i></div>
+                <div class="social-icon twitter"><i class="fab fa-twitter"></i></div>
+            </div>
+        </div>
+        <div id="signup-form" class="form-container" style="display: none;">
+            <h1><i class="fas fa-user-plus"></i> Cadastro</h1>
+            <div class="input-group">
+                <input type="text" id="signup-name" required>
+                <label for="signup-name">Nome completo</label>
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="input-group">
+                <input type="email" id="signup-email" required>
+                <label for="signup-email">E-mail</label>
+                <i class="fas fa-envelope"></i>
+            </div>
+            <div class="input-group">
+                <input type="password" id="signup-password" required>
+                <label for="signup-password">Senha</label>
+                <i class="fas fa-lock"></i>
+            </div>
+            <button id="signup-button">
+                <i class="fas fa-user-plus"></i> Cadastrar
+            </button>
+            <div class="toggle-form" id="show-login">Já tem uma conta? Faça login</div>
+        </div>
+        <div id="error-message"></div>
+    </div>
+
+    <script type="module">
+        // Importando os módulos necessários do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBVG7JceXSkh18jpi96wxI-3_V_uuQDxeg",
+            authDomain: "interface-27ba9.firebaseapp.com",
+            databaseURL: "https://interface-27ba9-default-rtdb.firebaseio.com",
+            projectId: "interface-27ba9",
+            storageBucket: "interface-27ba9.firebasestorage.app",
+            messagingSenderId: "319073209513",
+            appId: "1:319073209513:web:73119ceafb7cfd55812db8",
+            measurementId: "G-R467KN20EM"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Elementos do DOM
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const showSignup = document.getElementById('show-signup');
+        const showLogin = document.getElementById('show-login');
+        const errorMessage = document.getElementById('error-message');
+        const container = document.querySelector('.container');
+
+        // Alternar entre formulários com animação
+        showSignup.addEventListener('click', () => {
+            loginForm.style.display = 'none';
+            signupForm.style.display = 'flex';
+            errorMessage.textContent = '';
+            container.classList.add('animate__animated', 'animate__flipInY');
+            setTimeout(() => {
+                container.classList.remove('animate__animated', 'animate__flipInY');
+            }, 1000);
+        });
+
+        showLogin.addEventListener('click', () => {
+            signupForm.style.display = 'none';
+            loginForm.style.display = 'flex';
+            errorMessage.textContent = '';
+            container.classList.add('animate__animated', 'animate__flipInY');
+            setTimeout(() => {
+                container.classList.remove('animate__animated', 'animate__flipInY');
+            }, 1000);
+        });
+
+        // Função de login
+        document.getElementById('login-button').addEventListener('click', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Login bem-sucedido
+                    const user = userCredential.user;
+                    console.log("Usuário logado:", user);
+                    errorMessage.textContent = "Login bem-sucedido!";
+                    errorMessage.style.color = "#4CAF50";
+                    container.classList.add('animate__animated', 'animate__bounceOut');
+                    setTimeout(() => {
+                        alert('Redirecionando para a página principal...');
+                    }, 1000);
+                })
+                .catch((error) => {
+                    // Erro no login
+                    console.error("Erro no login:", error);
+                    errorMessage.textContent = "Erro no login. Verifique suas credenciais.";
+                    errorMessage.style.color = "#ff3860";
+                    container.classList.add('shake');
+                    setTimeout(() => {
+                        container.classList.remove('shake');
+                    }, 500);
+                });
+        });
+
+        // Função de cadastro
+        document.getElementById('signup-button').addEventListener('click', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Cadastro bem-sucedido
+                    const user = userCredential.user;
+                    console.log("Usuário cadastrado:", user);
+                    errorMessage.textContent = "Cadastro realizado com sucesso!";
+                    errorMessage.style.color = "#4CAF50";
+                    container.classList.add('animate__animated', 'animate__bounceOut');
+                    setTimeout(() => {
+                        alert('Redirecionando para a página principal...');
+                    }, 1000);
+                })
+                .catch((error) => {
+                    // Erro no cadastro
+                    console.error("Erro no cadastro:", error);
+                    errorMessage.textContent = "Erro no cadastro. Tente novamente.";
+                    errorMessage.style.color = "#ff3860";
+                    container.classList.add('shake');
+                    setTimeout(() => {
+                        container.classList.remove('shake');
+                    }, 500);
+                });
+        });
+
+        // Animação para os campos de input
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentNode.classList.add('animate__animated', 'animate__pulse');
+            });
+            input.addEventListener('blur', () => {
+                input.parentNode.classList.remove('animate__animated', 'animate__pulse');
+            });
+        });
+
+        // Animação para os botões de redes sociais
+        const socialIcons = document.querySelectorAll('.social-icon');
+        socialIcons.forEach(icon => {
+            icon.addEventListener('mouseenter', () => {
+                icon.classList.add('animate__animated', 'animate__rubberBand');
+            });
+            icon.addEventListener('mouseleave', () => {
+                icon.classList.remove('animate__animated', 'animate__rubberBand');
+            });
+        });
+    </script>
+</body>
+              </html>
