@@ -292,7 +292,7 @@
                     errorMessage.style.color = "#4CAF50";
                     container.classList.add('animate__animated', 'animate__bounceOut');
                     setTimeout(() => {
-                        alert('Redirecionando para a página principal...');
+                        window.location.href = 'dashboard.html'; // Redireciona para o dashboard
                     }, 1000);
                 })
                 .catch((error) => {
@@ -323,7 +323,7 @@
                     errorMessage.style.color = "#4CAF50";
                     container.classList.add('animate__animated', 'animate__bounceOut');
                     setTimeout(() => {
-                        alert('Redirecionando para a página principal...');
+                        window.location.href = 'dashboard.html'; // Redireciona para o dashboard
                     }, 1000);
                 })
                 .catch((error) => {
@@ -361,4 +361,4 @@
         });
     </script>
 </body>
-              </html>
+</html>
