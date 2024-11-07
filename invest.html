@@ -3,18 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PayInvest - Investimentos</title>
+    <title>PayInvest - Investimentos Avançados</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
     <style>
         :root {
-            --primary-color: #0056b3;
+            --primary-color: #1a5f7a;
             --secondary-color: #ffffff;
-            --accent-color: #00a0e9;
-            --background-color: #f0f2f5;
+            --accent-color: #ffa500;
+            --background-color: #f0f8ff;
             --text-color: #333333;
+            --card-bg: #ffffff;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --chart-bg: #f9f9f9;
         }
 
         * {
@@ -49,7 +52,7 @@
         }
 
         .logo {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 600;
         }
 
@@ -70,11 +73,11 @@
         }
 
         .balance-card {
-            background-color: var(--secondary-color);
+            background-color: var(--card-bg);
             border-radius: 10px;
             padding: 20px;
             margin-top: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--card-shadow);
             animation: fadeInUp 0.5s ease-out;
         }
 
@@ -97,48 +100,62 @@
         }
 
         .investment-card {
-            background-color: var(--secondary-color);
+            background-color: var(--card-bg);
             border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .investment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
         }
 
         .investment-title {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 600;
             margin-bottom: 15px;
+            color: var(--primary-color);
         }
 
         .investment-description {
             margin-bottom: 15px;
+            color: #666;
         }
 
         .investment-input {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
+            padding: 12px;
+            margin-bottom: 15px;
             border: 1px solid #ccc;
             border-radius: 5px;
+            font-size: 16px;
         }
 
         .investment-button {
             background-color: var(--primary-color);
             color: var(--secondary-color);
             border: none;
-            padding: 10px 20px;
+            padding: 12px 20px;
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s ease;
+            font-size: 16px;
+            font-weight: 600;
         }
 
         .investment-button:hover {
-            background-color: #004494;
+            background-color: #14475c;
         }
 
         .chart-container {
             width: 100%;
-            height: 200px;
-            margin-bottom: 15px;
+            height: 250px;
+            margin-bottom: 20px;
+            background-color: var(--chart-bg);
+            border-radius: 5px;
+            padding: 10px;
         }
 
         .assets-list {
@@ -150,11 +167,15 @@
             display: flex;
             justify-content: space-between;
             margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
         }
 
         .crypto-icon {
-            font-size: 24px;
-            margin-right: 10px;
+            font-size: 36px;
+            margin-right: 15px;
+            color: var(--accent-color);
         }
 
         .notification {
@@ -163,11 +184,39 @@
             right: 20px;
             background-color: var(--accent-color);
             color: var(--secondary-color);
-            padding: 10px 20px;
+            padding: 15px 25px;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             display: none;
             z-index: 1000;
+            font-weight: 600;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         @keyframes fadeInUp {
@@ -206,34 +255,34 @@
         <div class="investment-grid">
             <div class="investment-card">
                 <h3 class="investment-title">Investimento Bancário Do PayInvest (IBPI)</h3>
-                <p class="investment-description">Invista no capital do banco e obtenha lucros.</p>
+                <p class="investment-description">Invista no capital do banco e obtenha lucros potenciais.</p>
                 <input type="number" class="investment-input" id="ibpi-amount" placeholder="Valor do investimento">
-                <button class="investment-button" onclick="investIBPI()">Investir</button>
+                <button class="investment-button" onclick="investIBPI()">Investir no IBPI</button>
             </div>
 
             <div class="investment-card">
                 <h3 class="investment-title">Investimentos Calculado (IS)</h3>
-                <p class="investment-description">Acompanhe o gráfico e invista por 1 minuto.</p>
+                <p class="investment-description">Acompanhe o gráfico e invista por 20 segundos.</p>
                 <div class="chart-container">
                     <canvas id="is-chart"></canvas>
                 </div>
                 <input type="number" class="investment-input" id="is-amount" placeholder="Valor do investimento">
-                <button class="investment-button" onclick="investIS()">Investir</button>
+                <button class="investment-button" onclick="investIS()">Investir no IS</button>
             </div>
 
             <div class="investment-card">
                 <h3 class="investment-title">Investimento Em Ativos</h3>
-                <p class="investment-description">Invista em ações, imobiliário e moedas.</p>
+                <p class="investment-description">Invista em ações, imobiliário e moedas diversificadas.</p>
                 <ul class="assets-list" id="assets-list">
                     <!-- Assets will be dynamically added here -->
                 </ul>
                 <input type="number" class="investment-input" id="asset-amount" placeholder="Valor do investimento">
-                <button class="investment-button" onclick="investAsset()">Investir</button>
+                <button class="investment-button" onclick="investAsset()">Investir em Ativos</button>
             </div>
 
             <div class="investment-card">
                 <h3 class="investment-title">Investimento PayCripto (IPC)</h3>
-                <p class="investment-description">Invista na criptomoeda do PayInvest.</p>
+                <p class="investment-description">Invista na criptomoeda exclusiva do PayInvest.</p>
                 <div class="crypto-icon">
                     <i class="fas fa-coins"></i>
                 </div>
@@ -247,6 +296,9 @@
     </main>
 
     <div class="notification" id="notification"></div>
+    <div class="loading-overlay" id="loading-overlay" style="display: none;">
+        <div class="loading-spinner"></div>
+    </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
@@ -274,6 +326,7 @@
         const userBalanceElement = document.getElementById('user-balance');
         const notificationElement = document.getElementById('notification');
         const payCriptoBalanceElement = document.getElementById('paycripto-balance');
+        const loadingOverlay = document.getElementById('loading-overlay');
 
         let currentUser;
         let userBalance = 0;
@@ -292,6 +345,11 @@
             setTimeout(() => {
                 notificationElement.style.display = 'none';
             }, 3000);
+        }
+
+        // Função para mostrar/esconder o overlay de carregamento
+        function toggleLoading(show) {
+            loadingOverlay.style.display = show ? 'flex' : 'none';
         }
 
         // Verificar autenticação do usuário
@@ -328,11 +386,7 @@
                 // Inicializar componentes da página
                 initializeISChart();
                 generateAssets();
-            } else {
-                // Usuário não está autenticado, redirecionar para a página de login
-                window.location.href = 'index.html';
-            }
-        });
+            } });
 
         function updateBalanceDisplay() {
             userBalanceElement.textContent = formatCurrency(userBalance);
@@ -340,24 +394,33 @@
         }
 
         // Investimento Bancário Do PayInvest (IBPI)
-        function investIBPI() {
+        async function investIBPI() {
             const amount = parseFloat(document.getElementById('ibpi-amount').value);
             if (isNaN(amount) || amount <= 0 || amount > userBalance) {
                 showNotification('Valor inválido ou saldo insuficiente.');
                 return;
             }
 
+            toggleLoading(true);
             userBalance -= amount;
             bankCapital += amount;
 
-            // Simular retorno do investimento (entre -5% e 15%)
-            const returnRate = Math.random() * 0.2 - 0.05;
-            const profit = amount * returnRate;
-            userBalance += amount + profit;
-            bankCapital -= profit;
+            await new Promise(resolve => setTimeout(resolve, 20000)); // Espera 20 segundos
 
-            updateUserData();
-            showNotification(`Investimento realizado. Lucro: ${formatCurrency(profit)}`);
+            // Simular retorno do investimento (entre -10% e 20%)
+            const returnRate = Math.random() * 0.3 - 0.1;
+            const profit = amount * returnRate;
+            
+            if (profit > 0) {
+                userBalance += amount + profit;
+                bankCapital -= profit;
+            } else {
+                bankCapital += Math.abs(profit); // O banco fica com o prejuízo
+            }
+
+            await updateUserData();
+            toggleLoading(false);
+            showNotification(`Investimento IBPI concluído. Resultado: ${formatCurrency(profit)}`);
         }
 
         // Investimentos Calculado (IS)
@@ -386,45 +449,54 @@
             });
         }
 
-        function investIS() {
+        async function investIS() {
             const amount = parseFloat(document.getElementById('is-amount').value);
             if (isNaN(amount) || amount <= 0 || amount > userBalance) {
                 showNotification('Valor inválido ou saldo insuficiente.');
                 return;
             }
 
+            toggleLoading(true);
             userBalance -= amount;
-            updateUserData();
+            await updateUserData();
 
-            let timeLeft = 60;
+            let timeLeft = 20;
             let initialValue = 100;
             isChart.data.labels = [];
             isChart.data.datasets[0].data = [];
 
-            const interval = setInterval(() => {
+            for (let i = 0; i < 20; i++) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 timeLeft--;
                 const newValue = initialValue * (1 + (Math.random() - 0.5) * 0.1);
-                isChart.data.labels.push(60 - timeLeft);
+                isChart.data.labels.push(20 - timeLeft);
                 isChart.data.datasets[0].data.push(newValue);
                 isChart.update();
+            }
 
-                if (timeLeft === 0) {
-                    clearInterval(interval);
-                    const finalValue = isChart.data.datasets[0].data[isChart.data.datasets[0].data.length - 1];
-                    const profit = amount * (finalValue / 100 - 1);
-                    userBalance += amount + profit;
-                    bankCapital -= profit;
-                    updateUserData();
-                    showNotification(`Investimento concluído. Lucro: ${formatCurrency(profit)}`);
-                }
-            }, 1000);
+            const finalValue = isChart.data.datasets[0].data[isChart.data.datasets[0].data.length - 1];
+            const profit = amount * (finalValue / 100 - 1);
+            
+            if (profit > 0) {
+                userBalance += amount + profit;
+                bankCapital -= profit;
+            } else {
+                bankCapital += Math.abs(profit); // O banco fica com o prejuízo
+            }
+
+            await updateUserData();
+            toggleLoading(false);
+            showNotification(`Investimento IS concluído. Resultado: ${formatCurrency(profit)}`);
         }
 
         // Investimento Em Ativos
         const assets = [
-            { name: 'Ação A', type: 'stock' },
-            { name: 'Imóvel X', type: 'real-estate' },
-            { name: 'Moeda Y', type: 'currency' }
+            { name: 'Ação Tech', type: 'stock' },
+            { name: 'Imóvel Comercial', type: 'real-estate' },
+            { name: 'Euro', type: 'currency' },
+            { name: 'Ação Energia', type: 'stock' },
+            { name: 'Imóvel Residencial', type: 'real-estate' },
+            { name: 'Iene', type: 'currency' }
         ];
 
         function generateAssets() {
@@ -440,69 +512,89 @@
             });
         }
 
-        function investAsset() {
+        async function investAsset() {
             const amount = parseFloat(document.getElementById('asset-amount').value);
             if (isNaN(amount) || amount <= 0 || amount > userBalance) {
                 showNotification('Valor inválido ou saldo insuficiente.');
                 return;
             }
 
+            toggleLoading(true);
             userBalance -= amount;
-            const returnRate = Math.random() * 0.3 - 0.1; // Entre -10% e 20%
-            const profit = amount * returnRate;
-            userBalance += amount + profit;
 
-            updateUserData();
-            showNotification(`Investimento em ativos realizado. Lucro: ${formatCurrency(profit)}`);
+            await new Promise(resolve => setTimeout(resolve, 20000)); // Espera 20 segundos
+
+            const returnRate = Math.random() * 0.4 - 0.2; // Entre -20% e 20%
+            const profit = amount * returnRate;
+            
+            if (profit > 0) {
+                userBalance += amount + profit;
+                bankCapital -= profit;
+            } else {
+                bankCapital += Math.abs(profit); // O banco fica com o prejuízo
+            }
+
+            await updateUserData();
+            toggleLoading(false);
+            showNotification(`Investimento em ativos concluído. Resultado: ${formatCurrency(profit)}`);
             generateAssets(); // Atualizar valores dos ativos
         }
 
         // Investimento PayCripto (IPC)
-        function investIPC() {
+        async function investIPC() {
             const amount = parseFloat(document.getElementById('ipc-amount').value);
             if (isNaN(amount) || amount <= 0 || amount > userBalance) {
                 showNotification('Valor inválido ou saldo insuficiente.');
                 return;
             }
 
+            toggleLoading(true);
             const payCriptoAmount = amount / 5; // 5 reais = 1 PayCripto
             userBalance -= amount;
             payCriptoBalance += payCriptoAmount;
             bankCapital += amount;
 
-            updateUserData();
+            await new Promise(resolve => setTimeout(resolve, 20000)); // Espera 20 segundos
+
+            await updateUserData();
+            toggleLoading(false);
             showNotification(`Compra de ${payCriptoAmount.toFixed(2)} PayCripto realizada.`);
         }
 
-        function sellIPC() {
+        async function sellIPC() {
             const amount = parseFloat(document.getElementById('ipc-amount').value);
             if (isNaN(amount) || amount <= 0 || amount > payCriptoBalance) {
                 showNotification('Valor inválido ou saldo de PayCripto insuficiente.');
                 return;
             }
 
+            toggleLoading(true);
             const reaisAmount = amount * 5; // 1 PayCripto = 5 reais
             userBalance += reaisAmount;
             payCriptoBalance -= amount;
             bankCapital -= reaisAmount;
 
-            updateUserData();
+            await new Promise(resolve => setTimeout(resolve, 20000)); // Espera 20 segundos
+
+            await updateUserData();
+            toggleLoading(false);
             showNotification(`Venda de ${amount.toFixed(2)} PayCripto realizada.`);
         }
 
-        function updateUserData() {
+        async function updateUserData() {
             if (currentUser) {
-                firebase.database().ref('users/' + currentUser.uid).update({
+                await firebase.database().ref('users/' + currentUser.uid).update({
                     balance: userBalance,
                     payCripto: payCriptoBalance
                 });
                 updateBalanceDisplay();
+                await updateBankCapital();
             }
         }
 
         // Atualizar capital do banco no Firebase
-        function updateBankCapital() {
-            firebase.database().ref('bankCapital').set(bankCapital);
+        async function updateBankCapital() {
+            await firebase.database().ref('bankCapital').set(bankCapital);
         }
 
         // Inicializar capital do banco
