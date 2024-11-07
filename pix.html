@@ -328,7 +328,7 @@
                 const userData = snapshot.val();
                 if (userData) {
                     userBalanceElement.textContent = formatCurrency(userData.balance || 0);
-                    loadPixTransactions(userData.pixTransactions || []);
+                    loadPixTransactions(userData.pixTransactions || {});
                 }
             });
         }
@@ -421,31 +421,45 @@
                     return;
                 }
 
+                if (recipientUid === currentUser.uid) {
+                    showNotification('error', 'Erro', 'Você não pode enviar PIX para si mesmo.');
+                    return;
+                }
+
                 const senderRef = firebase.database().ref('users/' + currentUser.uid);
                 const recipientRef = firebase.database().ref('users/' + recipientUid);
 
-                firebase.database().ref().update({
-                    [`users/${currentUser.uid}/balance`]: firebase.database.ServerValue.increment(-amount),
-                    [`users/${recipientUid}/balance`]: firebase.database.ServerValue.increment(amount),
-                    [`users/${currentUser.uid}/pixTransactions`]: firebase.database.ServerValue.push({
+                senderRef.once('value', (senderSnapshot) => {
+                    const senderData = senderSnapshot.val();
+                    if (senderData.balance < amount) {
+                        showNotification('error', 'Erro', 'Saldo insuficiente para realizar a transação.');
+                        return;
+                    }
+
+                    const newTransaction = {
                         type: 'sent',
                         amount: amount,
                         pixKey: pixKey,
                         message: message,
                         date: firebase.database.ServerValue.TIMESTAMP
-                    }),
-                    [`users/${recipientUid}/pixTransactions`]: firebase.database.ServerValue.push({
+                    };
+
+                    const updates = {};
+                    updates[`users/${currentUser.uid}/balance`] = firebase.database.ServerValue.increment(-amount);
+                    updates[`users/${recipientUid}/balance`] = firebase.database.ServerValue.increment(amount);
+                    updates[`users/${currentUser.uid}/pixTransactions/${firebase.database.ServerValue.TIMESTAMP}`] = newTransaction;
+                    updates[`users/${recipientUid}/pixTransactions/${firebase.database.ServerValue.TIMESTAMP}`] = {
+                        ...newTransaction,
                         type: 'received',
-                        amount: amount,
-                        pixKey: currentUser.uid,
-                        message: message,
-                        date: firebase.database.ServerValue.TIMESTAMP
-                    })
-                }).then(() => {
-                    showNotification('success', 'Sucesso', 'PIX enviado com sucesso!');
-                    sendPixForm.reset();
-                }).catch((error) => {
-                    showNotification('error', 'Erro', 'Não foi possível enviar o PIX: ' + error.message);
+                        pixKey: senderData.pixKey
+                    };
+
+                    firebase.database().ref().update(updates).then(() => {
+                        showNotification('success', 'Sucesso', 'PIX enviado com sucesso!');
+                        sendPixForm.reset();
+                    }).catch((error) => {
+                        showNotification('error', 'Erro', 'Não foi possível enviar o PIX: ' + error.message);
+                    });
                 });
             });
         }
@@ -489,10 +503,10 @@
             const tableBody = document.querySelector('#pix-transactions tbody');
             tableBody.innerHTML = '';
 
-            Object.values(transactions).forEach((transaction) => {
+            Object.entries(transactions).forEach(([key, transaction]) => {
                 const row = tableBody.insertRow();
                 row.innerHTML = `
-                    <td>${moment(transaction.date).format('DD/MM/YYYY HH:mm')}</td>
+                    <td>${moment(parseInt(key)).format('DD/MM/YYYY HH:mm')}</td>
                     <td>${transaction.type === 'sent' ? 'Enviado' : 'Recebido'}</td>
                     <td>${formatCurrency(transaction.amount)}</td>
                     <td>${transaction.pixKey}</td>
@@ -519,6 +533,25 @@
             minDate: "today",
             time_24hr: true
         });
+
+        // Função para executar PIX agendados
+        function executeScheduledPix() {
+            const now = new Date().getTime();
+            const scheduledPixRef = firebase.database().ref('scheduledPix');
+            
+            scheduledPixRef.orderByChild('scheduledDate').endAt(now).once('value', (snapshot) => {
+                snapshot.forEach((childSnapshot) => {
+                    const scheduledPix = childSnapshot.val();
+                    if (scheduledPix.status === 'pending') {
+                        sendPix(scheduledPix.pixKey, scheduledPix.amount, scheduledPix.message);
+                        childSnapshot.ref.update({ status: 'completed' });
+                    }
+                });
+            });
+        }
+
+        // Executar PIX agendados a cada minuto
+        setInterval(executeScheduledPix, 60000);
     </script>
 </body>
-  </html>
+</html>
