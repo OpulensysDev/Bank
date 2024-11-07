@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayInvest - Cartão Digital</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #ffffff;
+            --accent-color: #00a0e9;
+            --background-color: #f0f2f5;
+            --text-color: #333333;
+            --card-bg: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            color: white;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-number {
+            font-size: 24px;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        .card-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .card-name {
+            font-size: 18px;
+            font-weight: 300;
+        }
+
+        .card-balance {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .dashboard-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-card h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .transaction-form {
+            margin-top: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #004494;
+        }
+
+        .transaction-history {
+            margin-top: 30px;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-icon {
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .credit {
+            color: #28a745;
+        }
+
+        .debit {
+            color: #dc3545;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 1000;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                padding: 20px;
+            }
+
+            .card-number {
+                font-size: 20px;
+            }
+
+            .card-balance {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">PayInvest</div>
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <span id="user-name">Carregando...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="card" id="digital-card">
+            <div class="card-number" id="card-number">**** **** **** ****</div>
+            <div class="card-info">
+                <div class="card-name" id="card-name">Nome do Titular</div>
+                <div class="card-balance" id="card-balance">R$ 0,00</div>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <div class="dashboard-card">
+                <h2>Transação</h2>
+                <form id="transaction-form" class="transaction-form">
+                    <div class="form-group">
+                        <label for="transaction-type">Tipo de Transação</label>
+                        <select id="transaction-type" required>
+                            <option value="credit">Crédito</option>
+                            <option value="debit">Débito</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="transaction-amount">Valor (R$)</label>
+                        <input type="number" id="transaction-amount" min="0.01" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="transaction-description">Descrição</label>
+                        <input type="text" id="transaction-description" required>
+                    </div>
+                    <button type="submit" class="btn">Realizar Transação</button>
+                </form>
+            </div>
+            <div class="dashboard-card">
+                <h2>Histórico de Transações</h2>
+                <div id="transaction-history" class="transaction-history">
+                    <!-- Transações serão adicionadas aqui dinamicamente -->
+                </div>
+            </div>
+            <div class="dashboard-card">
+                <h2>Gráfico de Gastos</h2>
+                <canvas id="expenses-chart"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <div class="notification" id="notification"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBVG7JceXSkh18jpi96wxI-3_V_uuQDxeg",
+            authDomain: "interface-27ba9.firebaseapp.com",
+            databaseURL: "https://interface-27ba9-default-rtdb.firebaseio.com",
+            projectId: "interface-27ba9",
+            storageBucket: "interface-27ba9.firebasestorage.app",
+            messagingSenderId: "319073209513",
+            appId: "1:319073209513:web:73119ceafb7cfd55812db8",
+            measurementId: "G-R467KN20EM"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Referências aos elementos do DOM
+        const userNameElement = document.getElementById('user-name');
+        const cardNumberElement = document.getElementById('card-number');
+        const cardNameElement = document.getElementById('card-name');
+        const cardBalanceElement = document.getElementById('card-balance');
+        const transactionForm = document.getElementById('transaction-form');
+        const transactionHistory = document.getElementById('transaction-history');
+        const notificationElement = document.getElementById('notification');
+        const expensesChart = document.getElementById('expenses-chart').getContext('2d');
+
+        let currentUser;
+        let chart;
+
+        // Função para formatar o número do cartão
+        function formatCardNumber(number) {
+            return number.replace(/(\d{4})/g, '$1 ').trim();
+        }
+
+        // Função para formatar o valor em Reais
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+        }
+
+        // Função para mostrar notificação
+        function showNotification(message) {
+            notificationElement.textContent = message;
+            notificationElement.style.display = 'block';
+            setTimeout(() => {
+                notificationElement.style.display = 'none';
+            }, 3000);
+        }
+
+        // Verificar autenticação do usuário
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                userNameElement.textContent = user.displayName || user.email;
+                loadUserData();
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Carregar dados do usuário
+        function loadUserData() {
+            const userRef = firebase.database().ref('users/' + currentUser.uid);
+            userRef.on('value', (snapshot) => {
+                const userData = snapshot.val();
+                if (userData) {
+                    cardNumberElement.textContent = formatCardNumber(userData.cardNumber || '**** **** **** ****');
+                    cardNameElement.textContent = userData.name || 'Nome do Titular';
+                    cardBalanceElement.textContent = formatCurrency(userData.balance || 0);
+                    loadTransactions();
+                    updateExpensesChart();
+                }
+            });
+        }
+
+        // Realizar transação
+        transactionForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const type = document.getElementById('transaction-type').value;
+            const amount = parseFloat(document.getElementById('transaction-amount').value);
+            const description = document.getElementById('transaction-description').value;
+
+            if (amount <= 0) {
+                showNotification('O valor da transação deve ser maior que zero.');
+                return;
+            }
+
+            const userRef = firebase.database().ref('users/' + currentUser.uid);
+            userRef.once('value', (snapshot) => {
+                const userData = snapshot.val();
+                let newBalance = userData.balance || 0;
+
+                if (type === 'debit' && amount > newBalance) {
+                    showNotification('Saldo insuficiente para esta transação.');
+                    return;
+                }
+
+                newBalance += type === 'credit' ? amount : -amount;
+
+                userRef.update({ balance: newBalance });
+
+                const transactionRef = firebase.database().ref('transactions/' + currentUser.uid).push();
+                transactionRef.set({
+                    type: type,
+                    amount: amount,
+                    description: description,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                showNotification('Transação realizada com sucesso!');
+                transactionForm.reset();
+            });
+        });
+
+        // Carregar transações
+        function loadTransactions() {
+            const transactionsRef = firebase.database().ref('transactions/' + currentUser.uid);
+            transactionsRef.orderByChild('timestamp').limitToLast(10).on('value', (snapshot) => {
+                transactionHistory.innerHTML = '';
+                const transactions = [];
+                snapshot.forEach((childSnapshot) => {
+                    transactions.unshift({
+                        id: childSnapshot.key,
+                        ...childSnapshot.val()
+                    });
+                });
+
+                transactions.forEach((transaction) => {
+                    const transactionElement = document.createElement('div');
+                    transactionElement.className = 'transaction-item';
+                    transactionElement.innerHTML = `
+                        <div>
+                            <i class="fas fa-${transaction.type === 'credit' ? 'arrow-up credit' : 'arrow-down debit'} transaction-icon"></i>
+                            ${transaction.description}
+                        </div>
+                        <div class="${transaction.type === 'credit' ? 'credit' : 'debit'}">
+                            ${formatCurrency(transaction.amount)}
+                        </div>
+                    `;
+                    transactionHistory.appendChild(transactionElement);
+                });
+            });
+        }
+
+        // Atualizar gráfico de gastos
+        function updateExpensesChart() {
+            const transactionsRef = firebase.database().ref('transactions/' + currentUser.uid);
+            transactionsRef.orderByChild('timestamp').limitToLast(30).once('value', (snapshot) => {
+                const expenses = {};
+                snapshot.forEach((childSnapshot) => {
+                    const transaction = childSnapshot.val();
+                    if (transaction.type === 'debit') {
+                        const date = new Date(transaction.timestamp).toLocaleDateString();
+                        expenses[date] = (expenses[date] || 0) + transaction.amount;
+                    }
+                });
+
+                const labels = Object.keys(expenses).sort();
+                const data = labels.map(date => expenses[date]);
+
+                if (chart) {
+                    chart.destroy();
+                }
+
+                chart = new Chart(expensesChart, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Gastos Diários',
+                            data: data,
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value, index, values) {
+                                        return formatCurrency(value);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        // Sistema de fidelidade simples
+        function updateLoyaltyPoints(amount) {
+            const pointsToAdd = Math.floor(amount);
+            const userRef = firebase.database().ref('users/' + currentUser.uid);
+            userRef.transaction((userData) => {
+                if (userData) {
+                    userData.loyaltyPoints = (userData.loyaltyPoints || 0) + pointsToAdd;
+                }
+                return userData;
+            }, (error, committed, snapshot) => {
+                if (committed) {
+                    const newPoints = snapshot.val().loyaltyPoints;
+                    showNotification(`Você ganhou ${pointsToAdd} pontos de fidelidade! Total: ${newPoints} pontos.`);
+                }
+            });
+        }
+
+        // Adicionar pontos de fidelidade após cada transação
+        transactionForm.addEventListener('submit', (e) => {
+            const amount = parseFloat(document.getElementById('transaction-amount').value);
+            updateLoyaltyPoints(amount);
+        });
+
+        // Simular detecção de fraude
+        function detectFraud(transaction) {
+            // Lógica simplificada de detecção de fraude
+            const suspiciousAmount = 5000; // Valor considerado suspeito
+            if (transaction.amount > suspiciousAmount) {
+                showNotification('Transação suspeita detectada! Por favor, confirme esta ação.');
+                // Aqui você poderia adicionar uma lógica para confirmar a transação com o usuário
+            }
+        }
+
+        // Adicionar detecção de fraude ao realizar transação
+        transactionForm.addEventListener('submit', (e) => {
+            const type = document.getElementById('transaction-type').value;
+            const amount = parseFloat(document.getElementById('transaction-amount').value);
+            const description = document.getElementById('transaction-description').value;
+
+            detectFraud({ type, amount, description });
+        });
+
+        // Função para gerar número de cartão virtual
+        function generateVirtualCard() {
+            const virtualCardNumber = Math.floor(Math.random() * 9000000000000000) + 1000000000000000;
+            const formattedNumber = formatCardNumber(virtualCardNumber.toString());
+            showNotification(`Cartão virtual gerado: ${formattedNumber}`);
+            // Aqui você poderia salvar este número no Firebase para uso futuro
+        }
+
+        // Adicionar botão para gerar cartão virtual
+        const virtualCardButton = document.createElement('button');
+        virtualCardButton.textContent = 'Gerar Cartão Virtual';
+        virtualCardButton.className = 'btn';
+        virtualCardButton.style.marginTop = '20px';
+        virtualCardButton.addEventListener('click', generateVirtualCard);
+        document.querySelector('.dashboard').appendChild(virtualCardButton);
+
+        // Função para converter moeda (simulada)
+        function convertCurrency(amount, fromCurrency, toCurrency) {
+            // Taxas de câmbio simuladas
+            const rates = {
+                'BRL': 1,
+                'USD': 0.2,
+                'EUR': 0.17
+            };
+
+            const convertedAmount = amount * (rates[toCurrency] / rates[fromCurrency]);
+            return convertedAmount.toFixed(2);
+        }
+
+        // Adicionar conversor de moeda simples
+        const currencyConverterForm = document.createElement('form');
+        currencyConverterForm.innerHTML = `
+            <h3>Conversor de Moeda</h3>
+            <div class="form-group">
+                <input type="number" id="currency-amount" placeholder="Valor" required>
+            </div>
+            <div class="form-group">
+                <select id="from-currency">
+                    <option value="BRL">BRL</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <select id="to-currency">
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="BRL">BRL</option>
+                </select>
+            </div>
+            <button type="submit" class="btn">Converter</button>
+            <div id="conversion-result"></div>
+        `;
+        currencyConverterForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const amount = document.getElementById('currency-amount').value;
+            const fromCurrency = document.getElementById('from-currency').value;
+            const toCurrency = document.getElementById('to-currency').value;
+            const result = convertCurrency(amount, fromCurrency, toCurrency);
+            document.getElementById('conversion-result').textContent = `${amount} ${fromCurrency} = ${result} ${toCurrency}`;
+        });
+        document.querySelector('.dashboard').appendChild(currencyConverterForm);
+
+        // Inicializar dados do usuário se não existirem
+        function initializeUserData() {
+            const userRef = firebase.database().ref('users/' + currentUser.uid);
+            userRef.once('value', (snapshot) => {
+                if (!snapshot.exists()) {
+                    const initialData = {
+                        name: currentUser.displayName || 'Usuário PayInvest',
+                        email: currentUser.email,
+                        balance: 1000, // Saldo inicial
+                        cardNumber: Math.floor(Math.random() * 9000000000000000) + 1000000000000000,
+                        loyaltyPoints: 0
+                    };
+                    userRef.set(initialData);
+                }
+            });
+        }
+
+        // Chamar a função de inicialização após a autenticação
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                initializeUserData();
+                loadUserData();
+            }
+        });
+    </script>
+</body>
+  </html>
