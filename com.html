@@ -363,25 +363,35 @@
 
         // Carregar dados do usuário
         function loadUserData() {
-            const userRef = firebase.database().ref('users/' + currentUser.uid);
-            userRef.on('value', (snapshot) => {
-                const userData = snapshot.val();
-                if (userData) {
-                    userBalanceElement.textContent = formatCurrency(userData.balance || 0);
-                    loadCofres(userData.cofres || {});
-                }
-            });
+    const userRef = firebase.database().ref('users/' + currentUser.uid);
+    userRef.on('value', (snapshot) => {
+        const userData = snapshot.val();
+        if (userData) {
+            userBalanceElement.textContent = formatCurrency(userData.balance || 0);
+            loadCofres(userData.cofres || {});
         }
+    });
+}
 
         // Carregar cofres do usuário
         function loadCofres(cofres) {
-            cofreContainer.innerHTML = '';
-            Object.keys(cofres).forEach((cofreId) => {
-                const cofre = cofres[cofreId];
-                addCofreToUI(cofreId, cofre);
-            });
-            cofreContainer.appendChild(addCofreButton);
+    // Limpar o conteúdo do container, exceto o botão de adicionar
+    while (cofreContainer.firstChild && cofreContainer.firstChild !== addCofreButton) {
+        cofreContainer.removeChild(cofreContainer.firstChild);
+    }
+    
+    Object.keys(cofres).forEach((cofreId) => {
+        const cofre = cofres[cofreId];
+        addCofreToUI(cofreId, cofre);
+    });
+    
+    // Garantir que o botão de adicionar seja o último elemento
+    if (cofreContainer.contains(addCofreButton)) {
+        cofreContainer.removeChild(addCofreButton);
+    }
+    cofreContainer.appendChild(addCofreButton);
         }
+        
 
         // Adicionar cofre à interface
         function addCofreToUI(cofreId, cofre) {
