@@ -1,241 +1,43 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Banco Simulado - Sua Melhor Escolha Financeira</title>
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
-    
-    <style>
-        :root {
-            --primary-color: #0056b3;
-            --secondary-color: #17a2b8;
-        }
-        
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f8f9fa;
-        }
-        
-        .navbar {
-            background-color: var(--primary-color);
-        }
-        
-        .hero {
-            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://source.unsplash.com/1600x900/?bank,finance') no-repeat center center;
-            background-size: cover;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: white;
-        }
-        
-        .features {
-            padding: 5rem 0;
-        }
-        
-        .feature-icon {
-            font-size: 3rem;
-            color: var(--secondary-color);
-        }
-        
-        .cta {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 5rem 0;
-        }
-        
-        .footer {
-            background-color: #343a40;
-            color: white;
-            padding: 3rem 0;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consumir API</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    #api-data {
+      margin-top: 20px;
+    }
+    .error {
+      color: red;
+    }
+  </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container">
-            <a class="navbar-brand" href="#">PayInvest</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="#sobre">Sobre</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#servicos">Serviços</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#contato">Contato</a></li>
-                    <li class="nav-item"><a class="nav-link btn btn-outline-light" href="auth.html">Acessar Conta</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+  <h1>Status da API</h1>
+  <button id="getStatus">Obter Status</button>
+  <div id="api-data"></div>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="container">
-            <h1 class="display-1 animate__animated animate__fadeInDown">Bem-vindo ao PayInvest</h1>
-            <p class="lead animate__animated animate__fadeInUp">Sua parceria financeira para um futuro próspero</p>
-            <a href="auth.html" class="btn btn-primary btn-lg animate__animated animate__bounceIn">Comece Agora</a>
-        </div>
-    </section>
+  <script>
+    const getStatusButton = document.getElementById('getStatus');
+    const apiDataDiv = document.getElementById('api-data');
 
-    <!-- Features Section -->
-    <section class="features" id="servicos">
-        <div class="container">
-            <h2 class="text-center mb-5">Nossos Serviços</h2>
-            <div class="row">
-                <div class="col-md-4 mb-4" data-aos="fade-up">
-                    <div class="text-center">
-                        <i class="fas fa-piggy-bank feature-icon mb-3"></i>
-                        <h3>Poupança</h3>
-                        <p>Faça seu dinheiro render com nossas opções de poupança de alto rendimento.</p>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
-                    <div class="text-center">
-                        <i class="fas fa-credit-card feature-icon mb-3"></i>
-                        <h3>Cartões</h3>
-                        <p>Descubra nossos cartões com benefícios exclusivos e cashback.</p>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="400">
-                    <div class="text-center">
-                        <i class="fas fa-chart-line feature-icon mb-3"></i>
-                        <h3>Investimentos</h3>
-                        <p>Maximize seus ganhos com nossa assessoria de investimentos personalizada.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Testimonials Section -->
-    <section class="testimonials bg-light py-5">
-        <div class="container">
-            <h2 class="text-center mb-5">O que nossos clientes dizem</h2>
-            <div class="swiper-container">
-                <div class="swiper-wrapper">
-                    <div class="swiper-slide">
-                        <div class="card">
-                            <div class="card-body">
-                                <p class="card-text">"O Banco Simulado transformou minha vida financeira. Recomendo a todos!"</p>
-                                <footer class="blockquote-footer">Maria Silva</footer>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="swiper-slide">
-                        <div class="card">
-                            <div class="card-body">
-                                <p class="card-text">"Atendimento excepcional e produtos financeiros inovadores. Estou muito satisfeito!"</p>
-                                <footer class="blockquote-footer">João Santos</footer>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="swiper-slide">
-                        <div class="card">
-                            <div class="card-body">
-                                <p class="card-text">"O aplicativo do Banco Simulado é incrível. Tudo que preciso na palma da minha mão!"</p>
-                                <footer class="blockquote-footer">Ana Oliveira</footer>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="swiper-pagination"></div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta">
-        <div class="container text-center">
-            <h2 class="mb-4">Pronto para começar sua jornada financeira?</h2>
-            <a href="auth.html" class="btn btn-light btn-lg">Abra sua conta agora</a>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4">
-                    <h5>Sobre o Banco Simulado</h5>
-                    <p>Somos um banco comprometido com o sucesso financeiro de nossos clientes, oferecendo soluções inovadoras e atendimento de excelência.</p>
-                </div>
-                <div class="col-md-4">
-                    <h5>Links Rápidos</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#sobre">Sobre Nós</a></li>
-                        <li><a href="#servicos">Nossos Serviços</a></li>
-                        <li><a href="#contato">Contato</a></li>
-                        <li><a href="#">Política de Privacidade</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h5>Contato</h5>
-                    <address>
-                        <strong>PayInvest S.A.</strong><br>
-                        Av. Paulista, 1000<br>
-                        São Paulo, SP 01310-100<br>
-                        <abbr title="Telefone">T:</abbr> (11) 1234-5678
-                    </address>
-                </div>
-            </div>
-            <hr>
-            <div class="text-center">
-                <p>&copy; 2023 PayInvest. Todos os direitos reservados.</p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- JavaScript -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
-    
-    <script>
-        // Initialize AOS
-        AOS.init();
-
-        // Initialize Swiper
-        var swiper = new Swiper('.swiper-container', {
-            slidesPerView: 1,
-            spaceBetween: 30,
-            loop: true,
-            pagination: {
-                el: '.swiper-pagination',
-                clickable: true,
-            },
-            autoplay: {
-                delay: 5000,
-            },
+    getStatusButton.addEventListener('click', () => {
+      fetch('https://api-status-coral.vercel.app/')
+        .then(response => response.json())
+        .then(data => {
+          // Exibe os dados no HTML
+          apiDataDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        })
+        .catch(error => {
+          // Exibe uma mensagem de erro caso algo aconteça
+          apiDataDiv.innerHTML = `<p class="error">Ocorreu um erro: ${error}</p>`;
         });
-
-        // GSAP Animations
-        gsap.from(".navbar", {duration: 1, y: "-100%", ease: "bounce"});
-        gsap.from(".hero h1", {duration: 1, opacity: 0, y: -50, stagger: 0.3});
-        gsap.from(".hero p", {duration: 1, opacity: 0, y: 50, stagger: 0.3, delay: 0.5});
-        gsap.from(".hero .btn", {duration: 1, opacity: 0, y: 50, stagger: 0.3, delay: 1});
-
-        // Smooth Scroll
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
-    </script>
+    });
+  </script>
 </body>
-  </html>
+</html>
