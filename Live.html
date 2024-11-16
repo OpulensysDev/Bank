@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Broadcast</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #videoElement {
+            width: 640px;
+            height: 480px;
+            background-color: #666;
+        }
+        #startButton, #stopButton {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #startButton { background-color: #4CAF50; color: white; border: none; }
+        #stopButton { background-color: #f44336; color: white; border: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Live Broadcast</h1>
+        <video id="videoElement" autoplay muted></video>
+        <br>
+        <button id="startButton">Start Broadcast</button>
+        <button id="stopButton">Stop Broadcast</button>
+    </div>
+
+    <script type="module">
+        // Import Firebase
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
+        import { getDatabase, ref, set, onDisconnect } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD3JPbd0KTlIBQBK63ZsZlPSUqjThWA2wg",
+            authDomain: "bucketimg-966e7.firebaseapp.com",
+            databaseURL: "https://bucketimg-966e7-default-rtdb.firebaseio.com",
+            projectId: "bucketimg-966e7",
+            storageBucket: "bucketimg-966e7.firebasestorage.app",
+            messagingSenderId: "571133168220",
+            appId: "1:571133168220:web:06fae21819c5b61313f499",
+            measurementId: "G-DPD8Z0HY87"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Get DOM elements
+        const videoElement = document.getElementById('videoElement');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+
+        let mediaRecorder;
+        let chunks = [];
+
+        // Start broadcast
+        startButton.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                videoElement.srcObject = stream;
+                
+                mediaRecorder = new MediaRecorder(stream);
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        chunks.push(event.data);
+                        // Send chunk to Firebase
+                        const chunkRef = ref(database, 'liveStream/currentChunk');
+                        set(chunkRef, {
+                            data: event.data,
+                            timestamp: Date.now()
+                        });
+                    }
+                };
+                
+                mediaRecorder.onstop = () => {
+                    chunks = [];
+                };
+                
+                mediaRecorder.start(1000); // Collect data every second
+                
+                // Update broadcast status in Firebase
+                const statusRef = ref(database, 'liveStream/status');
+                set(statusRef, 'live');
+                
+                // Set status to offline when disconnected
+                onDisconnect(statusRef).set('offline');
+                
+                startButton.disabled = true;
+                stopButton.disabled = false;
+            } catch (error) {
+                console.error('Error accessing media devices:', error);
+            }
+        });
+
+        // Stop broadcast
+        stopButton.addEventListener('click', () => {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                videoElement.srcObject.getTracks().forEach(track => track.stop());
+                
+                // Update broadcast status in Firebase
+                const statusRef = ref(database, 'liveStream/status');
+                set(statusRef, 'offline');
+                
+                startButton.disabled = false;
+                stopButton.disabled = true;
+            }
+        });
+    </script>
+</body>
+</html>
