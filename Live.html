@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Broadcast</title>
+    <title>Transmissão ao Vivo</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -38,19 +38,19 @@
 </head>
 <body>
     <div class="container">
-        <h1>Live Broadcast</h1>
+        <h1>Transmissão ao Vivo</h1>
         <video id="videoElement" autoplay muted></video>
         <br>
-        <button id="startButton">Start Broadcast</button>
-        <button id="stopButton">Stop Broadcast</button>
+        <button id="startButton">Iniciar Transmissão</button>
+        <button id="stopButton" disabled>Parar Transmissão</button>
     </div>
 
     <script type="module">
-        // Import Firebase
+        // Importar Firebase
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
-        import { getDatabase, ref, set, onDisconnect } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
+        import { getDatabase, ref, set, onValue, push, child } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
 
-        // Firebase configuration
+        // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyD3JPbd0KTlIBQBK63ZsZlPSUqjThWA2wg",
             authDomain: "bucketimg-966e7.firebaseapp.com",
@@ -62,71 +62,77 @@
             measurementId: "G-DPD8Z0HY87"
         };
 
-        // Initialize Firebase
+        // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        // Get DOM elements
+        // Elementos do DOM
         const videoElement = document.getElementById('videoElement');
         const startButton = document.getElementById('startButton');
         const stopButton = document.getElementById('stopButton');
 
-        let mediaRecorder;
-        let chunks = [];
+        let localStream;
+        let peerConnection;
+        const configuration = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]};
 
-        // Start broadcast
+        // Iniciar transmissão
         startButton.addEventListener('click', async () => {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                videoElement.srcObject = stream;
-                
-                mediaRecorder = new MediaRecorder(stream);
-                
-                mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        chunks.push(event.data);
-                        // Send chunk to Firebase
-                        const chunkRef = ref(database, 'liveStream/currentChunk');
-                        set(chunkRef, {
-                            data: event.data,
-                            timestamp: Date.now()
-                        });
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                videoElement.srcObject = localStream;
+
+                peerConnection = new RTCPeerConnection(configuration);
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+                // Configurar eventos de ICE
+                peerConnection.onicecandidate = event => {
+                    if (event.candidate) {
+                        const candidateRef = push(child(ref(database), 'candidates/'));
+                        set(candidateRef, JSON.stringify(event.candidate));
                     }
                 };
-                
-                mediaRecorder.onstop = () => {
-                    chunks = [];
-                };
-                
-                mediaRecorder.start(1000); // Collect data every second
-                
-                // Update broadcast status in Firebase
-                const statusRef = ref(database, 'liveStream/status');
-                set(statusRef, 'live');
-                
-                // Set status to offline when disconnected
-                onDisconnect(statusRef).set('offline');
-                
+
+                // Criar e enviar oferta
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                set(ref(database, 'offer'), JSON.stringify(offer));
+
+                // Escutar por resposta
+                onValue(ref(database, 'answer'), (snapshot) => {
+                    const answer = JSON.parse(snapshot.val());
+                    if (answer && !peerConnection.currentRemoteDescription) {
+                        peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+                    }
+                });
+
+                // Escutar por candidatos ICE
+                onValue(ref(database, 'candidates'), (snapshot) => {
+                    snapshot.forEach((childSnapshot) => {
+                        const candidate = JSON.parse(childSnapshot.val());
+                        peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                    });
+                });
+
                 startButton.disabled = true;
                 stopButton.disabled = false;
             } catch (error) {
-                console.error('Error accessing media devices:', error);
+                console.error('Erro ao acessar dispositivos de mídia:', error);
             }
         });
 
-        // Stop broadcast
+        // Parar transmissão
         stopButton.addEventListener('click', () => {
-            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-                videoElement.srcObject.getTracks().forEach(track => track.stop());
-                
-                // Update broadcast status in Firebase
-                const statusRef = ref(database, 'liveStream/status');
-                set(statusRef, 'offline');
-                
-                startButton.disabled = false;
-                stopButton.disabled = true;
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
             }
+            if (peerConnection) {
+                peerConnection.close();
+            }
+            videoElement.srcObject = null;
+            set(ref(database, 'offer'), null);
+            set(ref(database, 'candidates'), null);
+            startButton.disabled = false;
+            stopButton.disabled = true;
         });
     </script>
 </body>
