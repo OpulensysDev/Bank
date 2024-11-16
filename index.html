@@ -1,48 +1,98 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Consumir API</title>
-  <style>
-    body, html {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-}
-
-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Stream Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #videoElement {
+            width: 640px;
+            height: 480px;
+            background-color: #666;
+        }
+        #status {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-<canvas id="myCanvas"></canvas>
-  <script>
-    var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    var renderer = new THREE.WebGLRenderer({ canvas: document.getElementById("myCanvas") });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
+    <div class="container">
+        <h1>Live Stream Viewer</h1>
+        <video id="videoElement" autoplay></video>
+        <div id="status">Waiting for stream...</div>
+    </div>
 
-    var geometry = new THREE.BoxGeometry();
-    var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    var cube = new THREE.Mesh(geometry, material);
-    scene.add(cube);
+    <script type="module">
+        // Import Firebase
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
+        import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
 
-    camera.position.z = 5;
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD3JPbd0KTlIBQBK63ZsZlPSUqjThWA2wg",
+            authDomain: "bucketimg-966e7.firebaseapp.com",
+            databaseURL: "https://bucketimg-966e7-default-rtdb.firebaseio.com",
+            projectId: "bucketimg-966e7",
+            storageBucket: "bucketimg-966e7.firebasestorage.app",
+            messagingSenderId: "571133168220",
+            appId: "1:571133168220:web:06fae21819c5b61313f499",
+            measurementId: "G-DPD8Z0HY87"
+        };
 
-    function animate() {
-        requestAnimationFrame(animate);
-        cube.rotation.x += 0.01;
-        cube.rotation.y += 0.01;
-        renderer.render(scene, camera);
-    }
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
 
-    animate();
-  </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+        // Get DOM elements
+        const videoElement = document.getElementById('videoElement');
+        const statusElement = document.getElementById('status');
+
+        // Create MediaSource
+        const mediaSource = new MediaSource();
+        videoElement.src = URL.createObjectURL(mediaSource);
+
+        mediaSource.addEventListener('sourceopen', () => {
+            const sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp8,opus"');
+
+            // Listen for new chunks
+            const chunkRef = ref(database, 'liveStream/currentChunk');
+            onValue(chunkRef, (snapshot) => {
+                const chunk = snapshot.val();
+                if (chunk && chunk.data) {
+                    sourceBuffer.appendBuffer(new Uint8Array(chunk.data));
+                }
+            });
+        });
+
+        // Listen for stream status changes
+        const statusRef = ref(database, 'liveStream/status');
+        onValue(statusRef, (snapshot) => {
+            const status = snapshot.val();
+            if (status === 'live') {
+                statusElement.textContent = 'Live stream is active';
+                statusElement.style.color = 'green';
+            } else {
+                statusElement.textContent = 'Stream is offline';
+                statusElement.style.color = 'red';
+            }
+        });
+    </script>
 </body>
 </html>
