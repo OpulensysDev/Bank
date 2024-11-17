@@ -3,123 +3,270 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualizador da Transmissão ao Vivo</title>
+    <title>Editor de Imagens Profissional</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.11.2/toastify.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background-color: #f4f4f4;
+    }
+
+    #app {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    header {
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        padding: 1rem;
+        margin-bottom: 20px;
+    }
+
+    #editor-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    #canvas-container {
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+
+    #main-canvas {
+        display: block;
+        max-width: 100%;
+        height: auto;
+    }
+
+    #tools-container {
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 20px;
+    }
+
+    #tools-container > div {
+        margin-bottom: 20px;
+    }
+
+    button, select, input[type="file"] {
+        padding: 10px;
+        margin: 5px;
+        border: none;
+        border-radius: 5px;
+        background-color: #007bff;
+        color: #fff;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    button:hover, select:hover {
+        background-color: #0056b3;
+    }
+
+    input[type="range"] {
+        width: 100%;
+        margin: 10px 0;
+    }
+
+    label {
+        display: block;
+        margin-top: 10px;
+    }
+
+    @media (min-width: 768px) {
+        #editor-container {
+            flex-direction: row;
         }
-        .container {
-            text-align: center;
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+
+        #canvas-container {
+            flex: 2;
         }
-        #videoElement {
-            width: 640px;
-            height: 480px;
-            background-color: #666;
+
+        #tools-container {
+            flex: 1;
         }
-        #status {
-            margin-top: 10px;
-            font-weight: bold;
-        }
-    </style>
+    }
+        </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Visualizador da Transmissão ao Vivo</h1>
-        <video id="videoElement" autoplay></video>
-        <div id="status">Aguardando transmissão...</div>
+    <div id="app">
+        <header>
+            <h1>Editor de Imagens Profissional</h1>
+        </header>
+        <main>
+            <div id="editor-container">
+                <div id="canvas-container">
+                    <canvas id="main-canvas"></canvas>
+                </div>
+                <div id="tools-container">
+                    <div id="file-tools">
+                        <input type="file" id="imageLoader" accept="image/*">
+                        <button id="saveButton">Salvar Imagem</button>
+                    </div>
+                    <div id="edit-tools">
+                        <button id="cropButton">Recortar</button>
+                        <button id="rotateButton">Rotacionar</button>
+                        <button id="flipButton">Espelhar</button>
+                    </div>
+                    <div id="filter-tools">
+                        <select id="filterSelect">
+                            <option value="">Selecione um filtro</option>
+                            <option value="vintage">Vintage</option>
+                            <option value="lomo">Lomo</option>
+                            <option value="clarity">Claridade</option>
+                            <option value="sinCity">Sin City</option>
+                            <option value="crossProcess">Cross Process</option>
+                            <option value="pinhole">Pinhole</option>
+                            <option value="nostalgia">Nostalgia</option>
+                            <option value="hermajesty">Her Majesty</option>
+                        </select>
+                    </div>
+                    <div id="adjust-tools">
+                        <label for="brightness">Brilho:</label>
+                        <input type="range" id="brightness" min="-100" max="100" value="0">
+                        <label for="contrast">Contraste:</label>
+                        <input type="range" id="contrast" min="-100" max="100" value="0">
+                        <label for="saturation">Saturação:</label>
+                        <input type="range" id="saturation" min="-100" max="100" value="0">
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <script type="module">
-        // Importar Firebase
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
-        import { getDatabase, ref, onValue, set, push, child } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.2.1/fabric.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/camanjs/4.1.2/caman.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/compressorjs/1.1.1/compressor.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.11.2/toastify.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const canvas = new fabric.Canvas('main-canvas');
+        let cropper = null;
+        let currentImage = null;
 
-        // Configuração do Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyD3JPbd0KTlIBQBK63ZsZlPSUqjThWA2wg",
-            authDomain: "bucketimg-966e7.firebaseapp.com",
-            databaseURL: "https://bucketimg-966e7-default-rtdb.firebaseio.com",
-            projectId: "bucketimg-966e7",
-            storageBucket: "bucketimg-966e7.firebasestorage.app",
-            messagingSenderId: "571133168220",
-            appId: "1:571133168220:web:06fae21819c5b61313f499",
-            measurementId: "G-DPD8Z0HY87"
-        };
-
-        // Inicializar Firebase
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-
-        // Elementos do DOM
-        const videoElement = document.getElementById('videoElement');
-        const statusElement = document.getElementById('status');
-
-        // Configuração WebRTC
-        const configuration = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]};
-        let peerConnection;
-
-        // Função para iniciar a conexão peer
-        function startPeerConnection() {
-            peerConnection = new RTCPeerConnection(configuration);
-
-            peerConnection.ontrack = event => {
-                videoElement.srcObject = event.streams[0];
-                statusElement.textContent = 'Transmissão ao vivo ativa';
-                statusElement.style.color = 'green';
-            };
-
-            peerConnection.onicecandidate = event => {
-                if (event.candidate) {
-                    const candidateRef = push(child(ref(database), 'candidates/'));
-                    set(candidateRef, JSON.stringify(event.candidate));
-                }
-            };
-
-            // Escutar por oferta
-            onValue(ref(database, 'offer'), async (snapshot) => {
-                const offer = JSON.parse(snapshot.val());
-                if (offer && !peerConnection.currentRemoteDescription) {
-                    await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-                    const answer = await peerConnection.createAnswer();
-                    await peerConnection.setLocalDescription(answer);
-                    set(ref(database, 'answer'), JSON.stringify(answer));
-                }
-            });
-
-            // Escutar por candidatos ICE
-            onValue(ref(database, 'candidates'), (snapshot) => {
-                snapshot.forEach((childSnapshot) => {
-                    const candidate = JSON.parse(childSnapshot.val());
-                    peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-                });
-            });
+        function resizeCanvas() {
+            const containerWidth = document.getElementById('canvas-container').offsetWidth;
+            const containerHeight = window.innerHeight * 0.6;
+            canvas.setDimensions({ width: containerWidth, height: containerHeight });
+            canvas.renderAll();
         }
 
-        // Iniciar a conexão peer
-        startPeerConnection();
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
 
-        // Monitorar o status da transmissão
-        onValue(ref(database, 'offer'), (snapshot) => {
-            if (snapshot.val() === null) {
-                statusElement.textContent = 'Transmissão offline';
-                statusElement.style.color = 'red';
-                videoElement.srcObject = null;
-                if (peerConnection) {
-                    peerConnection.close();
-                }
-                startPeerConnection();
+        document.getElementById('imageLoader').addEventListener('change', function(e) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                new Compressor(e.target.files[0], {
+                    quality: 0.8,
+                    success(result) {
+                        const img = new Image();
+                        img.onload = function() {
+                            currentImage = new fabric.Image(img);
+                            canvas.clear();
+                            canvas.add(currentImage);
+                            canvas.centerObject(currentImage);
+                            canvas.renderAll();
+                        }
+                        img.src = URL.createObjectURL(result);
+                    },
+                    error(err) {
+                        console.error(err.message);
+                    },
+                });
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        });
+
+        document.getElementById('cropButton').addEventListener('click', function() {
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+                canvas.renderAll();
+            } else {
+                cropper = new Cropper(canvas.getElement(), {
+                    crop(event) {
+                        console.log(event.detail);
+                    },
+                });
             }
         });
-    </script>
+
+        document.getElementById('rotateButton').addEventListener('click', function() {
+            if (currentImage) {
+                currentImage.rotate(currentImage.angle + 90);
+                canvas.renderAll();
+            }
+        });
+
+        document.getElementById('flipButton').addEventListener('click', function() {
+            if (currentImage) {
+                currentImage.set('flipX', !currentImage.flipX);
+                canvas.renderAll();
+            }
+        });
+
+        document.getElementById('filterSelect').addEventListener('change', function(e) {
+            if (currentImage) {
+                Caman('#main-canvas', function() {
+                    this.revert();
+                    this[e.target.value]();
+                    this.render();
+                });
+            }
+        });
+
+        ['brightness', 'contrast', 'saturation'].forEach(function(adjustment) {
+            document.getElementById(adjustment).addEventListener('input', function(e) {
+                if (currentImage) {
+                    Caman('#main-canvas', function() {
+                        this.revert();
+                        this[adjustment](parseInt(e.target.value));
+                        this.render();
+                    });
+                }
+            });
+        });
+
+        document.getElementById('saveButton').addEventListener('click', function() {
+            if (currentImage) {
+                const dataURL = canvas.toDataURL({
+                    format: 'jpeg',
+                    quality: 0.8
+                });
+
+                const link = document.createElement('a');
+                link.href = dataURL;
+                link.download = 'edited_image.jpg';
+                link.click();
+
+                Toastify({
+                    text: "Imagem salva com sucesso!",
+                    duration: 3000,
+                    gravity: "bottom",
+                    position: 'right',
+                    backgroundColor: "#4CAF50",
+                }).showToast();
+            }
+        });
+    });
+            </script>
 </body>
 </html>
