@@ -1,630 +1,391 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Calculadora de Taxa Metabólica Avançada</title>
-  <link rel="icon" href="https://cdn.jsdelivr.net/npm/@mdi/svg@7.2.96/svg/calculator.svg">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/notyf@3.10.0/notyf.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/notyf@3.10.0/notyf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/i18next@21.6.10/i18next.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.7/dayjs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/numeral@2.0.6/min/numeral.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/decimal.js@10.4.3/decimal.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/validator@13.9.0/validator.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/uuid@9.0.0/dist/umd/uuid.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked@5.0.2/marked.min.js"></script>
-  <style>
-    body {
-      font-family: 'Roboto', sans-serif;
-      transition: background-color 0.3s, color 0.3s;
-    }
-    .custom-shadow {
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    .dark {
-      background-color: #1a202c;
-      color: #e2e8f0;
-    }
-    .dark .bg-white {
-      background-color: #2d3748;
-    }
-    .dark .text-gray-600 {
-      color: #a0aec0;
-    }
-    .dark .text-gray-700 {
-      color: #e2e8f0;
-    }
-    .dark .custom-shadow {
-      box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metropolis Manager Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuex@3.6.2/dist/vuex.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        [v-cloak] { display: none; }
+        #map { height: 400px; }
+    </style>
 </head>
 <body class="bg-gray-100">
-  <div class="container mx-auto px-4 py-8">
-    <header class="text-center mb-8">
-      <h1 class="text-4xl font-bold text-indigo-700 mb-2 animate__animated animate__fadeInDown" data-i18n="title">
-        Calculadora de Taxa Metabólica Avançada
-      </h1>
-      <p class="text-gray-600 animate__animated animate__fadeIn animate__delay-1s" data-i18n="subtitle">
-        Descubra sua taxa metabólica basal e muito mais!
-      </p>
-    </header>
+    <div id="app" v-cloak class="container mx-auto p-4">
+        <h1 class="text-4xl font-bold mb-6 text-center">Metropolis Manager Pro</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div v-for="stat in mainStats" :key="stat.name" class="bg-white p-4 rounded shadow">
+                <h2 class="text-lg font-semibold mb-2">{{ stat.name }}</h2>
+                <p class="text-2xl">{{ formatNumber(stat.value) }}{{ stat.unit }}</p>
+            </div>
+        </div>
 
-    <div class="flex justify-between items-center mb-4">
-      <div>
-        <label for="language" class="mr-2" data-i18n="language">Idioma:</label>
-        <select id="language" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-          <option value="pt-BR">Português</option>
-          <option value="en-US">English (USA)</option>
-          <option value="it-IT">Italiano</option>
-          <option value="es-ES">Español</option>
-        </select>
-      </div>
-      <button id="darkModeToggle" class="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-200">
-        <span class="mdi mdi-weather-night"></span> <span data-i18n="darkMode">Modo Escuro</span>
-      </button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white p-4 rounded shadow">
+                <h2 class="text-xl font-semibold mb-4">Recursos</h2>
+                <div v-for="resource in resources" :key="resource.name" class="mb-4">
+                    <div class="flex justify-between mb-2">
+                        <span>{{ resource.name }}</span>
+                        <span>{{ formatNumber(resource.amount) }} / {{ formatNumber(resource.capacity) }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded">
+                        <div class="bg-blue-500 rounded h-2" :style="{ width: `${(resource.amount / resource.capacity) * 100}%` }"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded shadow">
+                <h2 class="text-xl font-semibold mb-4">Economia</h2>
+                <canvas id="economyChart"></canvas>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            <div v-for="industry in industries" :key="industry.name" class="bg-white p-4 rounded shadow">
+                <h2 class="text-xl font-semibold mb-2">{{ industry.name }}</h2>
+                <p>Nível: {{ industry.level }}</p>
+                <p>Funcionários: {{ formatNumber(industry.employees) }}</p>
+                <p>Produção: {{ formatNumber(industry.production) }}/dia</p>
+                <button @click="upgradeIndustry(industry.name)" 
+                        class="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                        :disabled="money < industry.upgradeCost">
+                    Melhorar ({{ formatNumber(industry.upgradeCost) }}$)
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white p-4 rounded shadow mb-6">
+            <h2 class="text-xl font-semibold mb-4">Políticas</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div v-for="policy in policies" :key="policy.name" class="mb-4">
+                    <label :for="policy.name" class="block mb-2">{{ policy.name }}: {{ policy.value }}{{ policy.unit }}</label>
+                    <input type="range" :id="policy.name" v-model="policy.value" :min="policy.min" :max="policy.max" class="w-full">
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-4 rounded shadow mb-6">
+            <h2 class="text-xl font-semibold mb-4">Mapa da Cidade</h2>
+            <div id="map"></div>
+        </div>
+
+        <div class="flex justify-between mb-6">
+            <button @click="simulateDay" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                Simular Próximo Dia
+            </button>
+            <button @click="toggleAutoPlay" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
+                {{ isAutoPlaying ? 'Parar' : 'Iniciar' }} Auto Play
+            </button>
+        </div>
+
+        <div class="bg-white p-4 rounded shadow">
+            <h2 class="text-xl font-semibold mb-4">Eventos</h2>
+            <ul class="list-disc pl-5">
+                <li v-for="event in recentEvents" :key="event.id" class="mb-2">
+                    Dia {{ event.day }}: {{ event.message }}
+                </li>
+            </ul>
+        </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div class="bg-white rounded-lg p-6 custom-shadow animate__animated animate__fadeInLeft">
-        <h2 class="text-2xl font-semibold mb-4 text-indigo-600" data-i18n="personalData">Dados Pessoais</h2>
-        <form id="metabolicForm" class="space-y-4">
-          <div>
-            <label for="gender" class="block text-sm font-medium text-gray-700" data-i18n="gender">Sexo</label>
-            <select id="gender" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-              <option value="female" data-i18n="female">Feminino</option>
-              <option value="male" data-i18n="male">Masculino</option>
-            </select>
-          </div>
-          <div>
-            <label for="age" class="block text-sm font-medium text-gray-700" data-i18n="age">Idade</label>
-            <input type="number" id="age" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
-          </div>
-          <div>
-            <label for="weight" class="block text-sm font-medium text-gray-700" data-i18n="weight">Peso (kg)</label>
-            <input type="number" id="weight" step="0.1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
-          </div>
-          <div>
-            <label for="height" class="block text-sm font-medium text-gray-700" data-i18n="height">Altura (cm)</label>
-            <input type="number" id="height" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
-          </div>
-          <div>
-            <label for="activityLevel" class="block text-sm font-medium text-gray-700" data-i18n="activityLevel">Nível de Atividade</label>
-            <select id="activityLevel" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-              <option value="1.2" data-i18n="sedentary">Sedentário</option>
-              <option value="1.375" data-i18n="lightlyActive">Levemente Ativo</option>
-              <option value="1.55" data-i18n="moderatelyActive">Moderadamente Ativo</option>
-              <option value="1.725" data-i18n="veryActive">Muito Ativo</option>
-              <option value="1.9" data-i18n="extremelyActive">Extremamente Ativo</option>
-            </select>
-          </div>
-          <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-200" data-i18n="calculate">
-            Calcular
-          </button>
-        </form>
-      </div>
-
-      <div class="bg-white rounded-lg p-6 custom-shadow animate__animated animate__fadeInRight">
-        <h2 class="text-2xl font-semibold mb-4 text-indigo-600" data-i18n="results">Resultados</h2>
-        <div id="results" class="space-y-4">
-          <p class="text-gray-600" data-i18n="fillForm">Preencha o formulário para ver seus resultados.</p>
-        </div>
-        <div class="mt-8">
-          <canvas id="caloriesChart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div class="bg-white rounded-lg p-6 custom-shadow animate__animated animate__fadeInUp">
-        <h2 class="text-2xl font-semibold mb-4 text-indigo-600" data-i18n="macronutrients">Macronutrientes Recomendados</h2>
-        <div id="macronutrients" class="space-y-4">
-          <p class="text-gray-600" data-i18n="calculateFirst">Calcule sua taxa metabólica para ver as recomendações de macronutrientes.</p>
-        </div>
-        <div class="mt-8">
-          <div id="macroChart"></div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-lg p-6 custom-shadow animate__animated animate__fadeInUp">
-        <h2 class="text-2xl font-semibold mb-4 text-indigo-600" data-i18n="history">Histórico de Cálculos</h2>
-        <div id="history" class="space-y-4">
-          <p class="text-gray-600" data-i18n="noHistory">Seu histórico de cálculos aparecerá aqui.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="mt-8 bg-white rounded-lg p-6 custom-shadow animate__animated animate__fadeInUp">
-      <h2 class="text-2xl font-semibold mb-4 text-indigo-600" data-i18n="trends">Tendências e Previsões</h2>
-      <div id="trendsChart"></div>
-    </div>
-
-    <div class="mt-8 bg-white rounded-lg p-6 custom-shadow animate__animated animate__fadeInUp">
-      <h2 class="text-2xl font-semibold mb-4 text-indigo-600" data-i18n="information">Informações Nutricionais</h2>
-      <div id="nutritionInfo" class="prose"></div>
-    </div>
-  </div>
-
-  <script>
-    const form = document.getElementById('metabolicForm');
-    const resultsDiv = document.getElementById('results');
-    const macronutrientsDiv = document.getElementById('macronutrients');
-    const historyDiv = document.getElementById('history');
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    const languageSelect = document.getElementById('language');
-    let caloriesChart, macroChart, trendsChart;
-    const notyf = new Notyf();
-
-    const nutritionInfo = {
-      'pt-BR': `
-        # Informações Nutricionais Importantes
-
-        Uma dieta equilibrada é essencial para manter uma boa saúde. Aqui estão algumas dicas importantes:
-
-        1. **Proteínas**: Importantes para construção muscular e reparação de tecidos.
-        2. **Carboidratos**: Fonte principal de energia para o corpo.
-        3. **Gorduras**: Necessárias para absorção de vitaminas e produção hormonal.
-        4. **Fibras**: Ajudam na digestão e promovem saciedade.
-        5. **Vitaminas e Minerais**: Essenciais para várias funções corporais.
-
-        Lembre-se de consultar um nutricionista para uma dieta personalizada.
-      `,
-      'en-US': `
-        # Important Nutritional Information
-
-        A balanced diet is essential for maintaining good health. Here are some important tips:
-
-        1. **Proteins**: Important for muscle building and tissue repair.
-        2. **Carbohydrates**: Main source of energy for the body.
-        3. **Fats**: Necessary for vitamin absorption and hormone production.
-        4. **Fiber**: Helps with digestion and promotes satiety.
-        5. **Vitamins and Minerals**: Essential for various bodily functions.
-
-        Remember to consult a nutritionist for a personalized diet.
-      `,
-      'it-IT': `
-        # Informazioni Nutrizionali Importanti
-
-        Una dieta equilibrata è essenziale per mantenere una buona salute. Ecco alcuni consigli importanti:
-
-        1. **Proteine**: Importanti per la costruzione muscolare e la riparazione dei tessuti.
-        2. **Carboidrati**: Principale fonte di energia per il corpo.
-        3. **Grassi**: Necessari per l'assorbimento delle vitamine e la produzione di ormoni.
-        4. **Fibre**: Aiutano la digestione e promuovono la sazietà.
-        5. **Vitamine e Minerali**: Essenziali per varie funzioni corporee.
-
-        Ricorda di consultare un nutrizionista per una dieta personalizzata.
-      `,
-      'es-ES': `
-        # Información Nutricional Importante
-
-        Una dieta equilibrada es esencial para mantener una buena salud. Aquí hay algunos consejos importantes:
-
-        1. **Proteínas**: Importantes para la construcción muscular y la reparación de tejidos.
-        2. **Carbohidratos**: Fuente principal de energía para el cuerpo.
-        3. **Grasas**: Necesarias para la absorción de vitaminas y la producción de hormonas.
-        4. **Fibra**: Ayuda con la digestión y promueve la saciedad.
-        5. **Vitaminas y Minerales**: Esenciales para varias funciones corporales.
-
-        Recuerda consultar a un nutricionista para una dieta personalizada.
-      `
-    };
-
-    const translations = {
-      'pt-BR': {
-        title: 'Calculadora de Taxa Metabólica Avançada',
-        subtitle: 'Descubra sua taxa metabólica basal e muito mais!',
-        language: 'Idioma:',
-        darkMode: 'Modo Escuro',
-        personalData: 'Dados Pessoais',
-        gender: 'Sexo',
-        female: 'Feminino',
-        male: 'Masculino',
-        age: 'Idade',
-        weight: 'Peso (kg)',
-        height: 'Altura (cm)',
-        activityLevel: 'Nível de Atividade',
-        sedentary: 'Sedentário',
-        lightlyActive: 'Levemente Ativo',
-        moderatelyActive: 'Moderadamente Ativo',
-        veryActive: 'Muito Ativo',
-        extremelyActive: 'Extremamente Ativo',
-        calculate: 'Calcular',
-        results: 'Resultados',
-        fillForm: 'Preencha o formulário para ver seus resultados.',
-        macronutrients: 'Macronutrientes Recomendados',
-        calculateFirst: 'Calcule sua taxa metabólica para ver as recomendações de macronutrientes.',
-        history: 'Histórico de Cálculos',
-        noHistory: 'Seu histórico de cálculos aparecerá aqui.',
-        trends: 'Tendências e Previsões',
-        information: 'Informações Nutricionais',
-        bmr: 'Taxa Metabólica Basal (TMB):',
-        tdee: 'Gasto Energético Total Diário (TDEE):',
-        bmi: 'Índice de Massa Corporal (IMC):',
-        bmiClassification: 'Classificação IMC:',
-        protein: 'Proteínas:',
-        carbs: 'Carboidratos:',
-        fats: 'Gorduras:',
-        date: 'Data:',
-        underweight: 'Abaixo do peso',
-        normalWeight: 'Peso normal',
-        overweight: 'Sobrepeso',
-        obese: 'Obesidade'
-      },
-      'en-US': {
-        title: 'Advanced Metabolic Rate Calculator',
-        subtitle: 'Discover your basal metabolic rate and more!',
-        language: 'Language:',
-        darkMode: 'Dark Mode',
-        personalData: 'Personal Data',
-        gender: 'Gender',
-        female: 'Female',
-        male: 'Male',
-        age: 'Age',
-        weight: 'Weight (kg)',
-        height: 'Height (cm)',
-        activityLevel: 'Activity Level',
-        sedentary: 'Sedentary',
-        lightlyActive: 'Lightly Active',
-        moderatelyActive: 'Moderately Active',
-        veryActive: 'Very Active',
-        extremelyActive: 'Extremely Active',
-        calculate: 'Calculate',
-        results: 'Results',
-        fillForm: 'Fill out the form to see your results.',
-        macronutrients: 'Recommended Macronutrients',
-        calculateFirst: 'Calculate your metabolic rate to see macronutrient recommendations.',
-        history: 'Calculation History',
-        noHistory: 'Your calculation history will appear here.',
-        trends: 'Trends and Predictions',
-        information: 'Nutritional Information',
-        bmr: 'Basal Metabolic Rate (BMR):',
-        tdee: 'Total Daily Energy Expenditure (TDEE):',
-        bmi: 'Body Mass Index (BMI):',
-        bmiClassification: 'BMI Classification:',
-        protein: 'Protein:',
-        carbs: 'Carbohydrates:',
-        fats: 'Fats:',
-        date: 'Date:',
-        underweight: 'Underweight',
-        normalWeight: 'Normal weight',
-        overweight: 'Overweight',
-        obese: 'Obese'
-      },
-      'it-IT': {
-        title: 'Calcolatore Avanzato del Tasso Metabolico',
-        subtitle: 'Scopri il tuo tasso metabolico basale e altro!',
-        language: 'Lingua:',
-        darkMode: 'Modalità Scura',
-        personalData: 'Dati Personali',
-        gender: 'Sesso',
-        female: 'Femmina',
-        male: 'Maschio',
-        age: 'Età',
-        weight: 'Peso (kg)',
-        height: 'Altezza (cm)',
-        activityLevel: 'Livello di Attività',
-        sedentary: 'Sedentario',
-        lightlyActive: 'Leggermente Attivo',
-        moderatelyActive: 'Moderatamente Attivo',
-        veryActive: 'Molto Attivo',
-        extremelyActive: 'Estremamente Attivo',
-        calculate: 'Calcola',
-        results: 'Risultati',
-        fillForm: 'Compila il modulo per vedere i tuoi risultati.',
-        macronutrients: 'Macronutrienti Raccomandati',
-        calculateFirst: 'Calcola il tuo tasso metabolico per vedere le raccomandazioni sui macronutrienti.',
-        history: 'Cronologia dei Calcoli',
-        noHistory: 'La tua cronologia dei calcoli apparirà qui.',
-        trends: 'Tendenze e Previsioni',
-        information: 'Informazioni Nutrizionali',
-        bmr: 'Tasso Metabolico Basale (TMB):',
-        tdee: 'Dispendio Energetico Totale Giornaliero (TDEE):',
-        bmi: 'Indice di Massa Corporea (IMC):',
-        bmiClassification: 'Classificazione IMC:',
-        protein: 'Proteine:',
-        carbs: 'Carboidrati:',
-        fats: 'Grassi:',
-        date: 'Data:',
-        underweight: 'Sottopeso',
-        normalWeight: 'Peso normale',
-        overweight: 'Sovrappeso',
-        obese: 'Obeso'
-      },
-      'es-ES': {
-        title: 'Calculadora Avanzada de Tasa Metabólica',
-        subtitle: '¡Descubre tu tasa metabólica basal y más!',
-        language: 'Idioma:',
-        darkMode: 'Modo Oscuro',
-        personalData: 'Datos Personales',
-        gender: 'Sexo',
-        female: 'Femenino',
-        male: 'Masculino',
-        age: 'Edad',
-        weight: 'Peso (kg)',
-        height: 'Altura (cm)',
-        activityLevel: 'Nivel de Actividad',
-        sedentary: 'Sedentario',
-        lightlyActive: 'Ligeramente Activo',
-        moderatelyActive: 'Moderadamente Activo',
-        veryActive: 'Muy Activo',
-        extremelyActive: 'Extremadamente Activo',
-        calculate: 'Calcular',
-        results: 'Resultados',
-        fillForm: 'Completa el formulario para ver tus resultados.',
-        macronutrients: 'Macronutrientes Recomendados',
-        calculateFirst: 'Calcula tu tasa metabólica para ver las recomendaciones de macronutrientes.',
-        history: 'Historial de Cálculos',
-        noHistory: 'Tu historial de cálculos aparecerá aquí.',
-        trends: 'Tendencias y Predicciones',
-        information: 'Información Nutricional',
-        bmr: 'Tasa Metabólica Basal (TMB):',
-        tdee: 'Gasto Energético Total Diario (TDEE):',
-        bmi: 'Índice de Masa Corporal (IMC):',
-        bmiClassification: 'Clasificación IMC:',
-        protein: 'Proteínas:',
-        carbs: 'Carbohidratos:',
-        fats: 'Grasas:',
-        date: 'Fecha:',
-        underweight: 'Bajo peso',
-        normalWeight: 'Peso normal',
-        overweight: 'Sobrepeso',
-        obese: 'Obesidad'
-      }
-    };
-
-    function updateLanguage(lang) {
-      document.querySelectorAll('[data-i18n]').forEach(elem => {
-        const key = elem.getAttribute('data-i18n');
-        elem.textContent = translations[lang][key] || key;
-      });
-      document.getElementById('nutritionInfo').innerHTML = marked.parse(nutritionInfo[lang]);
-    }
-
-    languageSelect.addEventListener('change', (e) => {
-      updateLanguage(e.target.value);
-    });
-
-    darkModeToggle.addEventListener('click', () => {
-      document.body.classList.toggle('dark');
-      const isDarkMode = document.body.classList.contains('dark');
-      darkModeToggle.innerHTML = `<span class="mdi ${isDarkMode ? 'mdi-weather-sunny' : 'mdi-weather-night'}"></span> ${isDarkMode ? translations[languageSelect.value].lightMode : translations[languageSelect.value].darkMode}`;
-    });
-
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const gender = document.getElementById('gender').value;
-      const age = parseInt(document.getElementById('age').value);
-      const weight = parseFloat(document.getElementById('weight').value);
-      const height = parseInt(document.getElementById('height').value);
-      const activityLevel = parseFloat(document.getElementById('activityLevel').value);
-
-      const bmr = calculateBMR(gender, age, weight, height);
-      const tdee = calculateTDEE(bmr, activityLevel);
-      const bmi = calculateBMI(weight, height);
-      const macros = calculateMacros(tdee);
-
-      displayResults(bmr, tdee, bmi);
-      displayMacronutrients(macros);
-      updateCaloriesChart(bmr, tdee);
-      updateMacroChart(macros);
-      addToHistory(gender, age, weight, height, activityLevel, bmr, tdee, bmi);
-      updateTrendsChart();
-
-      notyf.success(translations[languageSelect.value].calculationSuccess);
-    });
-
-    function calculateBMR(gender, age, weight, height) {
-      if (gender === 'male') {
-        return 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
-      } else {
-        return 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
-      }
-    }
-
-    function calculateTDEE(bmr, activityLevel) {
-      return bmr * activityLevel;
-    }
-
-    function calculateBMI(weight, height) {
-      const heightInMeters = height / 100;
-      return weight / (heightInMeters * heightInMeters);
-    }
-
-    function calculateMacros(tdee) {
-      const protein = (tdee * 0.3) / 4;
-      const carbs = (tdee * 0.4) / 4;
-      const fats = (tdee * 0.3) / 9;
-      return { protein, carbs, fats };
-    }
-
-    function displayResults(bmr, tdee, bmi) {
-      const lang = languageSelect.value;
-      resultsDiv.innerHTML = `
-        <p class="font-semibold">${translations[lang].bmr} <span class="text-indigo-600">${Math.round(bmr)} ${translations[lang].calories}/day</span></p>
-        <p class="font-semibold">${translations[lang].tdee} <span class="text-indigo-600">${Math.round(tdee)} ${translations[lang].calories}/day</span></p>
-        <p class="font-semibold">${translations[lang].bmi} <span class="text-indigo-600">${bmi.toFixed(1)}</span></p>
-        <p class="font-semibold">${translations[lang].bmiClassification} <span class="text-indigo-600">${getBMIClassification(bmi, lang)}</span></p>
-      `;
-    }
-
-    function displayMacronutrients(macros) {
-      const lang = languageSelect.value;
-      macronutrientsDiv.innerHTML = `
-        <p class="font-semibold">${translations[lang].protein} <span class="text-indigo-600">${Math.round(macros.protein)}g</span></p>
-        <p class="font-semibold">${translations[lang].carbs} <span class="text-indigo-600">${Math.round(macros.carbs)}g</span></p>
-        <p class="font-semibold">${translations[lang].fats} <span class="text-indigo-600">${Math.round(macros.fats)}g</span></p>
-      `;
-    }
-
-    function getBMIClassification(bmi, lang) {
-      if (bmi < 18.5) return translations[lang].underweight;
-      if (bmi < 25) return translations[lang].normalWeight;
-      if (bmi < 30) return translations[lang].overweight;
-      return translations[lang].obese;
-    }
-
-    function updateCaloriesChart(bmr, tdee) {
-      const ctx = document.getElementById('caloriesChart').getContext('2d');
-      const lang = languageSelect.value;
-      
-      if (caloriesChart) {
-        caloriesChart.destroy();
-      }
-
-      caloriesChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['BMR', 'TDEE'],
-          datasets: [{
-            label: translations[lang].calories,
-            data: [bmr, tdee],
-            backgroundColor: ['rgba(99, 102, 241, 0.5)', 'rgba(79, 70, 229, 0.5)'],
-            borderColor: ['rgba(99, 102, 241, 1)', 'rgba(79, 70, 229, 1)'],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          }
-        }
-      });
-    }
-
-    function updateMacroChart(macros) {
-      const lang = languageSelect.value;
-      
-      if (macroChart) {
-        macroChart.destroy();
-      }
-
-      macroChart = new ApexCharts(document.querySelector("#macroChart"), {
-        series: [Math.round(macros.protein), Math.round(macros.carbs), Math.round(macros.fats)],
-        chart: {
-          type: 'donut',
-        },
-        labels: [translations[lang].protein, translations[lang].carbs, translations[lang].fats],
-        responsive: [{
-          breakpoint: 480,
-          options: {
-            chart: {
-              width: 200
+    <script>
+        const store = new Vuex.Store({
+            state: {
+                day: 1,
+                population: 100000,
+                money: 10000000,
+                happiness: 50,
+                resources: [
+                    { name: 'Alimentos', amount: 50000, capacity: 100000, production: 5000, consumption: 4000, price: 1 },
+                    { name: 'Energia', amount: 30000, capacity: 80000, production: 4000, consumption: 3500, price: 2 },
+                    { name: 'Materiais', amount: 40000, capacity: 120000, production: 6000, consumption: 5500, price: 3 }
+                ],
+                industries: [
+                    { name: 'Agricultura', level: 1, employees: 10000, production: 5000, upgradeCost: 500000 },
+                    { name: 'Indústria', level: 1, employees: 8000, production: 4000, upgradeCost: 750000 },
+                    { name: 'Serviços', level: 1, employees: 12000, production: 3000, upgradeCost: 1000000 }
+                ],
+                policies: [
+                    { name: 'Taxa de Impostos', value: 10, min: 0, max: 30, unit: '%' },
+                    { name: 'Investimento em Educação', value: 5, min: 0, max: 20, unit: '%' },
+                    { name: 'Investimento em Saúde', value: 5, min: 0, max: 20, unit: '%' },
+                    { name: 'Investimento em Infraestrutura', value: 5, min: 0, max: 20, unit: '%' },
+                    { name: 'Investimento em Segurança', value: 5, min: 0, max: 20, unit: '%' }
+                ],
+                events: [],
+                economyHistory: [],
+                cityMap: null
             },
-            legend: {
-              position: 'bottom'
+            mutations: {
+                updateResource(state, { index, amount }) {
+                    state.resources[index].amount = Math.max(0, Math.min(amount, state.resources[index].capacity));
+                },
+                updateMoney(state, amount) {
+                    state.money = Math.max(0, state.money + amount);
+                },
+                updatePopulation(state, amount) {
+                    state.population = Math.max(0, state.population + amount);
+                },
+                updateHappiness(state, amount) {
+                    state.happiness = Math.max(0, Math.min(100, state.happiness + amount));
+                },
+                incrementDay(state) {
+                    state.day++;
+                },
+                addEvent(state, event) {
+                    state.events.unshift(event);
+                    if (state.events.length > 5) state.events.pop();
+                },
+                upgradeIndustry(state, industryName) {
+                    const industry = state.industries.find(i => i.name === industryName);
+                    if (industry) {
+                        industry.level++;
+                        industry.employees = Math.floor(industry.employees * 1.2);
+                        industry.production = Math.floor(industry.production * 1.3);
+                        industry.upgradeCost = Math.floor(industry.upgradeCost * 1.5);
+                    }
+                },
+                addEconomyHistory(state, data) {
+                    state.economyHistory.push(data);
+                    if (state.economyHistory.length > 30) state.economyHistory.shift();
+                },
+                setCityMap(state, map) {
+                    state.cityMap = map;
+                }
+            },
+            actions: {
+                simulateDay({ state, commit, dispatch }) {
+                    // Resource production and consumption
+                    state.resources.forEach((resource, index) => {
+                        const netProduction = resource.production - resource.consumption;
+                        commit('updateResource', { index, amount: resource.amount + netProduction });
+                    });
+
+                    // Calculate income and expenses
+                    const taxRate = state.policies.find(p => p.name === 'Taxa de Impostos').value / 100;
+                    const income = state.industries.reduce((sum, industry) => sum + industry.production * 10, 0);
+                    const taxIncome = income * taxRate;
+                    const expenses = state.population * 5 + // Basic expenses per citizen
+                                     state.policies.reduce((sum, policy) => sum + (policy.value * state.population * 0.1), 0); // Policy expenses
+                    const netIncome = taxIncome - expenses;
+
+                    commit('updateMoney', netIncome);
+
+                    // Population growth
+                    const growthRate = (state.happiness / 100) * 0.01;
+                    const populationChange = Math.floor(state.population * growthRate);
+                    commit('updatePopulation', populationChange);
+
+                    // Happiness changes
+                    const happinessChange = (
+                        state.policies.find(p => p.name === 'Investimento em Educação').value * 0.2 +
+                        state.policies.find(p => p.name === 'Investimento em Saúde').value * 0.2 +
+                        state.policies.find(p => p.name === 'Investimento em Infraestrutura').value * 0.1 +
+                        state.policies.find(p => p.name === 'Investimento em Segurança').value * 0.1 -
+                        state.policies.find(p => p.name === 'Taxa de Impostos').value * 0.1
+                    );
+                    commit('updateHappiness', happinessChange);
+
+                    // Random events
+                    if (Math.random() < 0.1) {
+                        dispatch('triggerRandomEvent');
+                    }
+
+                    commit('addEconomyHistory', {
+                        day: state.day,
+                        money: state.money,
+                        population: state.population,
+                        happiness: state.happiness
+                    });
+
+                    commit('incrementDay');
+
+                    // Update city map
+                    dispatch('updateCityMap');
+                },
+                triggerRandomEvent({ state, commit }) {
+                    const events = [
+                        { message: "Boom econômico! Produção aumentada em 10%.", effect: () => {
+                            state.industries.forEach(i => i.production *= 1.1);
+                        }},
+                        { message: "Crise econômica! Produção reduzida em 10%.", effect: () => {
+                            state.industries.forEach(i => i.production *= 0.9);
+                        }},
+                        { message: "Avanço tecnológico! Capacidade de recursos aumentada em 20%.", effect: () => {
+                            state.resources.forEach(r => r.capacity *= 1.2);
+                        }},
+                        { message: "Desastre natural! Perda de 5% da população.", effect: () => {
+                            commit('updatePopulation', -Math.floor(state.population * 0.05));
+                        }},
+                        { message: "Festival cultural! Aumento de 5% na felicidade.", effect: () => {
+                            commit('updateHappiness', 5);
+                        }}
+                    ];
+
+                    const event = events[Math.floor(Math.random() * events.length)];
+                    event.effect();
+                    commit('addEvent', { day: state.day, message: event.message });
+
+                    // Mostrar notificação do evento
+                    Swal.fire({
+                        title: 'Evento Especial!',
+                        text: event.message,
+                        icon: 'info',
+                        confirmButtonText: 'OK'
+                    });
+                },
+                upgradeIndustry({ state, commit }, industryName) {
+                    const industry = state.industries.find(i => i.name === industryName);
+                    if (industry && state.money >= industry.upgradeCost) {
+                        commit('updateMoney', -industry.upgradeCost);
+                        commit('upgradeIndustry', industryName);
+                        commit('addEvent', { 
+                            day: state.day, 
+                            message: `${industry.name} melhorada para o nível ${industry.level + 1}!` 
+                        });
+                    }
+                },
+                initializeCityMap({ commit }) {
+                    const map = L.map('map').setView([0, 0], 13);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+                    commit('setCityMap', map);
+                },
+                updateCityMap({ state }) {
+                    if (state.cityMap) {
+                        state.cityMap.eachLayer((layer) => {
+                            if (layer instanceof L.Marker) {
+                                state.cityMap.removeLayer(layer);
+                            }
+                        });
+
+                        // Add markers for industries
+                        state.industries.forEach((industry, index) => {
+                            const lat = (index - 1) * 0.01;
+                            const lng = (index - 1) * 0.01;
+                            L.marker([lat, lng]).addTo(state.cityMap)
+                                .bindPopup(`${industry.name}<br>Nível: ${industry.level}<br>Produção: ${industry.production}/dia`);
+                        });
+
+                        // Add circle for population density
+                        L.circle([0, 0], {
+                            color: 'red',
+                            fillColor: '#f03',
+                            fillOpacity: 0.5,
+                            radius: Math.sqrt(state.population) * 10
+                        }).addTo(state.cityMap);
+                    }
+                }
             }
-          }
-        }]
-      });
+        });
 
-      macroChart.render();
-    }
+        new Vue({
+            el: '#app',
+            store,
+            data: {
+                isAutoPlaying: false,
+                autoPlayInterval: null,
+                economyChart: null
+            },
+            computed: {
+                ...Vuex.mapState([
+                    'day', 'population', 'money', 'happiness', 'resources', 'industries', 'policies'
+                ]),
+                mainStats() {
+                    return [
+                        { name: 'Dia', value: this.day, unit: '' },
+                        { name: 'População', value: this.population, unit: '' },
+                        { name: 'Dinheiro', value: this.money, unit: '$' },
+                        { name: 'Felicidade', value: this.happiness, unit: '%' }
+                    ];
+                },
+                recentEvents() {
+                    return this.$store.state.events;
+                }
+            },
+            methods: {
+                formatNumber(number) {
+                    return number.toLocaleString('pt-BR');
+                },
+                simulateDay() {
+                    this.$store.dispatch('simulateDay');
+                    this.updateEconomyChart();
+                },
+                toggleAutoPlay() {
+                    if (this.isAutoPlaying) {
+                        clearInterval(this.autoPlayInterval);
+                        this.isAutoPlaying = false;
+                    } else {
+                        this.autoPlayInterval = setInterval(() => {
+                            this.simulateDay();
+                        }, 1000);
+                        this.isAutoPlaying = true;
+                    }
+                },
+                upgradeIndustry(industryName) {
+                    this.$store.dispatch('upgradeIndustry', industryName);
+                },
+                updateEconomyChart() {
+                    const history = this.$store.state.economyHistory;
+                    if (this.economyChart) {
+                        this.economyChart.data.labels = history.map(h => h.day);
+                        this.economyChart.data.datasets[0].data = history.map(h => h.money);
+                        this.economyChart.data.datasets[1].data = history.map(h => h.population);
+                        this.economyChart.data.datasets[2].data = history.map(h => h.happiness);
+                        this.economyChart.update();
+                    }
+                }
+            },
+            mounted() {
+                this.economyChart = new Chart(document.getElementById('economyChart'), {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Dinheiro',
+                            borderColor: 'rgb(75, 192, 192)',
+                            data: []
+                        }, {
+                            label: 'População',
+                            borderColor: 'rgb(255, 99, 132)',
+                            data: []
+                        }, {
+                            label: 'Felicidade',
+                            borderColor: 'rgb(255, 205, 86)',
+                            data: []
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Dia'
+                                }
+                            },
+                            y: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Valor'
+                                }
+                            }
+                        }
+                    }
+                });
 
-    function addToHistory(gender, age, weight, height, activityLevel, bmr, tdee, bmi) {
-      const historyItem = document.createElement('div');
-      historyItem.className = 'bg-gray-100 p-4 rounded-md mb-4';
-      const lang = languageSelect.value;
-      historyItem.innerHTML = `
-        <p class="font-semibold">${translations[lang].date} <span class="text-indigo-600">${luxon.DateTime.now().toLocaleString()}</span></p>
-        <p>BMR: ${Math.round(bmr)} cal | TDEE: ${Math.round(tdee)} cal | BMI: ${bmi.toFixed(1)}</p>
-      `;
-      historyDiv.insertBefore(historyItem, historyDiv.firstChild);
-
-      // Save to local storage
-      const history = JSON.parse(localStorage.getItem('metabolicHistory') || '[]');
-      history.push({ date: new Date(), bmr, tdee, bmi });
-      localStorage.setItem('metabolicHistory', JSON.stringify(history));
-    }
-
-    function updateTrendsChart() {
-      const history = JSON.parse(localStorage.getItem('metabolicHistory') || '[]');
-      const dates = history.map(item => new Date(item.date).toLocaleDateString());
-      const bmrData = history.map(item => item.bmr);
-      const tdeeData = history.map(item => item.tdee);
-
-      if (trendsChart) {
-        trendsChart.destroy();
-      }
-
-      trendsChart = new ApexCharts(document.querySelector("#trendsChart"), {
-        series: [{
-          name: 'BMR',
-          data: bmrData
-        }, {
-          name: 'TDEE',
-          data: tdeeData
-        }],
-        chart: {
-          height: 350,
-          type: 'line',
-          zoom: {
-            enabled: false
-          }
-        },
-        dataLabels: {
-          enabled: false
-        },
-        stroke: {
-          curve: 'straight'
-        },
-        title: {
-          text: 'Trends over time',
-          align: 'left'
-        },
-        grid: {
-          row: {
-            colors: ['#f3f3f3', 'transparent'],
-            opacity: 0.5
-          },
-        },
-        xaxis: {
-          categories: dates,
-        }
-      });
-
-      trendsChart.render();
-    }
-
-    // Initialize language
-    updateLanguage(languageSelect.value);
-
-    // Initialize nutritional information
-    document.getElementById('nutritionInfo').innerHTML = marked.parse(nutritionInfo[languageSelect.value]);
-
-    // Load history from local storage
-    const savedHistory = JSON.parse(localStorage.getItem('metabolicHistory') || '[]');
-    savedHistory.forEach(item => {
-      const historyItem = document.createElement('div');
-      historyItem.className = 'bg-gray-100 p-4 rounded-md mb-4';
-      const lang = languageSelect.value;
-      historyItem.innerHTML = `
-        <p class="font-semibold">${translations[lang].date} <span class="text-indigo-600">${new Date(item.date).toLocaleString()}</span></p>
-        <p>BMR: ${Math.round(item.bmr)} cal | TDEE: ${Math.round(item.tdee)} cal | BMI: ${item.bmi.toFixed(1)}</p>
-      `;
-      historyDiv.appendChild(historyItem);
-    });
-
-    // Initialize trends chart
-    updateTrendsChart();
-
-  </script>
+                this.$store.dispatch('initializeCityMap');
+            }
+        });
+    </script>
 </body>
 </html>
